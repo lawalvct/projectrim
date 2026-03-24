@@ -36,7 +36,7 @@ return Application::configure(basePath: dirname(__DIR__))
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->respond(function (Response $response) {
-            if (in_array($response->getStatusCode(), [404, 403, 500, 503]) && ! request()->isJson() && ! request()->is('admin/*')) {
+            if (in_array($response->getStatusCode(), [404, 403, 500, 503]) && ! request()->isJson() && ! request()->is('admin/*', 'telescope/*')) {
                 return inertia('Error', ['status' => $response->getStatusCode()])
                     ->toResponse(request())
                     ->setStatusCode($response->getStatusCode());
