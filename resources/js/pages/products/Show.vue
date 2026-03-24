@@ -304,7 +304,15 @@ async function sendMessage() {
                                 :class="activeTab === 'reviews' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
                                 @click="activeTab = 'reviews'"
                             >
-                                Reviews ({{ product.reviews_count }})
+                                Reviews ({{ reviewsCount }})
+                            </button>
+                            <button
+                                type="button"
+                                class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
+                                :class="activeTab === 'messenger' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
+                                @click="activeTab = 'messenger'"
+                            >
+                                Messenger
                             </button>
                         </div>
 
@@ -313,11 +321,44 @@ async function sendMessage() {
                             <div v-else-if="activeTab === 'toc' && product.table_of_content" class="prose prose-sm max-w-none" v-html="product.table_of_content" />
                             <div v-else-if="activeTab === 'chapter1' && product.chapter_one" class="prose prose-sm max-w-none" v-html="product.chapter_one" />
                             <div v-else-if="activeTab === 'reviews'">
-                                <div v-if="!product.reviews.length" class="py-8 text-center text-muted-foreground">
-                                    No reviews yet.
+                                <!-- Review Form -->
+                                <div v-if="auth?.user && !hasReviewed" class="mb-6 rounded-lg border p-4">
+                                    <h4 class="mb-3 text-sm font-semibold">Write a Review</h4>
+                                    <div v-if="reviewError" class="mb-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ reviewError }}</div>
+                                    <div class="mb-3">
+                                        <Label class="mb-1 block text-sm">Rating</Label>
+                                        <div class="flex gap-1">
+                                            <button
+                                                v-for="star in 5"
+                                                :key="star"
+                                                type="button"
+                                                class="text-2xl transition-colors"
+                                                :class="(hoverRating || reviewRating) >= star ? 'text-yellow-500' : 'text-muted-foreground/30'"
+                                                @mouseenter="hoverRating = star"
+                                                @mouseleave="hoverRating = 0"
+                                                @click="reviewRating = star"
+                                            >
+                                                ★
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="mb-3">
+                                        <Label for="review-comment" class="mb-1 block text-sm">Comment (optional)</Label>
+                                        <Textarea id="review-comment" v-model="reviewComment" rows="3" placeholder="Share your thoughts..." />
+                                    </div>
+                                    <Button size="sm" :disabled="submittingReview" @click="submitReview">
+                                        {{ submittingReview ? 'Submitting...' : 'Submit Review' }}
+                                    </Button>
+                                </div>
+                                <div v-else-if="!auth?.user" class="mb-6 rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
+                                    <Link href="/login" class="text-primary hover:underline">Sign in</Link> to leave a review.
+                                </div>
+
+                                <div v-if="!reviews.length" class="py-8 text-center text-muted-foreground">
+                                    No reviews yet. Be the first!
                                 </div>
                                 <div v-else class="space-y-4">
-                                    <div v-for="review in product.reviews" :key="review.id" class="rounded-lg border p-4">
+                                    <div v-for="review in reviews" :key="review.id" class="rounded-lg border p-4">
                                         <div class="flex items-center justify-between">
                                             <div class="flex items-center gap-2">
                                                 <div class="h-8 w-8 rounded-full bg-muted flex items-center justify-center text-sm font-medium">
@@ -333,6 +374,38 @@ async function sendMessage() {
                                         <p class="mt-2 text-sm">{{ review.comment }}</p>
                                     </div>
                                 </div>
+                            </div>
+
+                            <!-- Messenger Tab -->
+                            <div v-else-if="activeTab === 'messenger'">
+                                <div v-if="messageSent" class="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+                                    Message sent successfully! The author(s) will receive it shortly.
+                                </div>
+                                <div v-if="messageError" class="mb-4 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ messageError }}</div>
+                                <form class="space-y-4" @submit.prevent="sendMessage">
+                                    <input type="text" name="honeypot" v-model="msgForm.honeypot" class="hidden" tabindex="-1" autocomplete="off" />
+                                    <div class="grid gap-4 sm:grid-cols-2">
+                                        <div>
+                                            <Label for="msg-name">Your Name</Label>
+                                            <Input id="msg-name" v-model="msgForm.sender_name" required />
+                                        </div>
+                                        <div>
+                                            <Label for="msg-email">Your Email</Label>
+                                            <Input id="msg-email" type="email" v-model="msgForm.sender_email" required />
+                                        </div>
+                                    </div>
+                                    <div>
+                                        <Label for="msg-subject">Subject</Label>
+                                        <Input id="msg-subject" v-model="msgForm.subject" required />
+                                    </div>
+                                    <div>
+                                        <Label for="msg-body">Message</Label>
+                                        <Textarea id="msg-body" v-model="msgForm.body" rows="5" required placeholder="Write your message to the author(s)..." />
+                                    </div>
+                                    <Button type="submit" :disabled="sendingMessage">
+                                        {{ sendingMessage ? 'Sending...' : 'Send Message' }}
+                                    </Button>
+                                </form>
                             </div>
                         </div>
                     </div>
@@ -354,9 +427,11 @@ async function sendMessage() {
                                 <Button v-if="product.is_paid" class="w-full" size="lg" :disabled="addingToCart" @click="addToCart">
                                     {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
                                 </Button>
-                                <Button v-else class="w-full" size="lg">
-                                    Download Free
-                                </Button>
+                                <a v-else :href="`/download/${product.id}`" class="w-full">
+                                    <Button class="w-full" size="lg">
+                                        Download Free
+                                    </Button>
+                                </a>
                             </div>
 
                             <Separator class="my-4" />
@@ -372,10 +447,23 @@ async function sendMessage() {
                                     <div class="text-xs text-muted-foreground">Downloads</div>
                                 </div>
                                 <div>
-                                    <div class="font-semibold">{{ product.likes_count }}</div>
+                                    <div class="font-semibold">{{ likesCount }}</div>
                                     <div class="text-xs text-muted-foreground">Likes</div>
                                 </div>
                             </div>
+
+                            <Separator class="my-4" />
+
+                            <!-- Like Button -->
+                            <Button
+                                variant="outline"
+                                class="w-full gap-2"
+                                :disabled="togglingLike"
+                                @click="toggleLike"
+                            >
+                                <span :class="liked ? 'text-red-500' : 'text-muted-foreground'">{{ liked ? '❤' : '♡' }}</span>
+                                {{ liked ? 'Liked' : 'Like this project' }}
+                            </Button>
                         </CardContent>
                     </Card>
 

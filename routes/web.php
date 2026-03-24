@@ -10,9 +10,13 @@ use App\Http\Controllers\Dashboard\SellerApplicationController;
 use App\Http\Controllers\Dashboard\UserDownloadController;
 use App\Http\Controllers\Dashboard\UserMessageController;
 use App\Http\Controllers\Dashboard\UserOrderController;
+use App\Http\Controllers\DownloadController;
 use App\Http\Controllers\HomeController;
+use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductMessageController;
+use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seller\PaymentHistoryController;
 use App\Http\Controllers\Seller\PaymentMethodController;
@@ -44,6 +48,13 @@ Route::get('/tags/{slug}', [BrowseController::class, 'tag'])->name('browse.tag')
 // CMS pages
 Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 
+// Product messages (public - no auth required)
+Route::post('/products/{product}/messages', [ProductMessageController::class, 'store'])->name('products.messages.store');
+
+// Downloads (public for free products, auth-checked internally for paid)
+Route::get('/download/{product}', [DownloadController::class, 'download'])->name('download.product');
+Route::get('/download/{product}/file', [DownloadController::class, 'file'])->name('download.file');
+
 // Social authentication
 Route::get('/auth/social/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
 Route::get('/auth/social/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
@@ -55,6 +66,11 @@ Route::delete('/cart/{item}', [CartController::class, 'remove'])->name('cart.rem
 Route::get('/api/cart/count', [CartController::class, 'count'])->name('cart.count');
 
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Like / Review (AJAX)
+    Route::post('/products/{product}/like', [LikeController::class, 'toggle'])->name('products.like');
+    Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('products.reviews.store');
+    Route::delete('/products/{product}/reviews', [ReviewController::class, 'destroy'])->name('products.reviews.destroy');
+
     // Checkout
     Route::get('checkout', [CheckoutController::class, 'index'])->name('checkout.index');
     Route::post('checkout', [CheckoutController::class, 'process'])->name('checkout.process');
