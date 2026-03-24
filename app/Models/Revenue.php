@@ -12,13 +12,13 @@ class Revenue extends Model
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:2',
+            'amount_usd' => 'decimal:4',
         ];
     }
 
-    public function seller(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class);
     }
 
     public function order(): BelongsTo

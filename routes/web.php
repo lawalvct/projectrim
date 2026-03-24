@@ -12,7 +12,14 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\SearchController;
+use App\Http\Controllers\Seller\PaymentHistoryController;
+use App\Http\Controllers\Seller\PaymentMethodController;
+use App\Http\Controllers\Seller\PayoutRequestController;
+use App\Http\Controllers\Seller\SellerOrderController;
+use App\Http\Controllers\Seller\SellerOverviewController;
 use App\Http\Controllers\Seller\SellerProductController;
+use App\Http\Controllers\Seller\SellerProfileController;
+use App\Http\Controllers\Seller\SellerTransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -54,7 +61,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
     // Seller product management
     Route::middleware('role:seller')->prefix('dashboard/seller')->name('seller.')->group(function () {
+        Route::get('/', [SellerOverviewController::class, 'index'])->name('overview');
+        Route::get('profile', [SellerProfileController::class, 'edit'])->name('profile.edit');
+        Route::post('profile', [SellerProfileController::class, 'update'])->name('profile.update');
         Route::resource('products', SellerProductController::class);
+        Route::get('orders', [SellerOrderController::class, 'index'])->name('orders.index');
+        Route::get('transactions', [SellerTransactionController::class, 'index'])->name('transactions.index');
+        Route::get('payouts', [PayoutRequestController::class, 'index'])->name('payouts.index');
+        Route::post('payouts', [PayoutRequestController::class, 'store'])->name('payouts.store');
+        Route::get('payments', [PaymentHistoryController::class, 'index'])->name('payments.index');
+        Route::get('payment-method', [PaymentMethodController::class, 'edit'])->name('payment-method.edit');
+        Route::post('payment-method', [PaymentMethodController::class, 'update'])->name('payment-method.update');
     });
 });
 

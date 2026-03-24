@@ -12,14 +12,14 @@ class PaymentGiven extends Model
     protected function casts(): array
     {
         return [
-            'amount' => 'decimal:2',
+            'amount_usd' => 'decimal:2',
             'paid_at' => 'datetime',
         ];
     }
 
-    public function seller(): BelongsTo
+    public function user(): BelongsTo
     {
-        return $this->belongsTo(User::class, 'seller_id');
+        return $this->belongsTo(User::class);
     }
 
     public function payoutRequest(): BelongsTo
