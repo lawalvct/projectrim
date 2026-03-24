@@ -44,6 +44,9 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'flash' => [
+                'status' => fn () => $request->session()->get('status'),
+            ],
             'navPages' => fn () => Page::published()->nav()->orderBy('sort_order')->get(['id', 'title', 'slug']),
             'footerPages' => fn () => Page::published()->footer()->orderBy('sort_order')->get(['id', 'title', 'slug']),
             'settings' => fn () => Setting::getValue('site_name') ? [

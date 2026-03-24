@@ -32,6 +32,14 @@ class DefaultSettingsSeeder extends Seeder
             ['group' => 'smartlinks', 'key' => 'smart_link_enabled', 'value' => '0', 'type' => 'boolean'],
             ['group' => 'smartlinks', 'key' => 'smart_link_code', 'value' => '', 'type' => 'textarea'],
 
+            // Seller
+            ['group' => 'seller', 'key' => 'auto_approve_sellers', 'value' => 'true', 'type' => 'boolean'],
+            ['group' => 'seller', 'key' => 'allow_paid_products', 'value' => 'false', 'type' => 'boolean'],
+
+            // Monetization
+            ['group' => 'monetization', 'key' => 'view_reward_usd', 'value' => '0.10', 'type' => 'number'],
+            ['group' => 'monetization', 'key' => 'download_reward_usd', 'value' => '1.00', 'type' => 'number'],
+
             // Payment
             ['group' => 'payment', 'key' => 'currency', 'value' => 'NGN', 'type' => 'text'],
             ['group' => 'payment', 'key' => 'currency_symbol', 'value' => '₦', 'type' => 'text'],
