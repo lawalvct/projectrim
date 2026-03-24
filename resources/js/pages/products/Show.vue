@@ -5,7 +5,11 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
+import { Input } from '@/components/ui/input';
+import { Textarea } from '@/components/ui/textarea';
+import { Label } from '@/components/ui/label';
 import { ref, computed } from 'vue';
+import axios from 'axios';
 
 interface ProductImage {
     id: number;
@@ -82,11 +86,14 @@ const props = defineProps<{
         images: ProductImage[];
         user: { id: number; name: string };
     }>;
+    isLiked: boolean;
+    userReview: { id: number; rating: number; comment: string } | null;
 }>();
 
 const page = usePage();
+const auth = computed(() => page.props.auth as { user: { id: number; name: string; email: string } | null } | undefined);
 const settings = computed(() => (page.props.settings as Record<string, string>) || {});
-const activeTab = ref<'abstract' | 'toc' | 'chapter1' | 'reviews'>('abstract');
+const activeTab = ref<'abstract' | 'toc' | 'chapter1' | 'reviews' | 'messenger'>('abstract');
 
 const activeImage = ref(0);
 
@@ -105,6 +112,7 @@ function renderStars(rating: number): string {
     return '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
 }
 
+// --- Cart ---
 const addingToCart = ref(false);
 
 function addToCart() {
@@ -113,6 +121,94 @@ function addToCart() {
         preserveScroll: true,
         onFinish: () => { addingToCart.value = false; },
     });
+}
+
+// --- Like ---
+const liked = ref(props.isLiked);
+const likesCount = ref(props.product.likes_count);
+const togglingLike = ref(false);
+
+async function toggleLike() {
+    if (!auth.value?.user) {
+        router.visit('/login');
+        return;
+    }
+    togglingLike.value = true;
+    try {
+        const { data } = await axios.post(`/products/${props.product.id}/like`);
+        liked.value = data.liked;
+        likesCount.value = data.likes_count;
+    } catch {
+        // silently fail
+    } finally {
+        togglingLike.value = false;
+    }
+}
+
+// --- Reviews ---
+const reviews = ref<Review[]>([...props.product.reviews]);
+const reviewsCount = ref(props.product.reviews_count);
+const hasReviewed = ref(!!props.userReview);
+const reviewRating = ref(0);
+const reviewComment = ref('');
+const submittingReview = ref(false);
+const reviewError = ref('');
+const hoverRating = ref(0);
+
+async function submitReview() {
+    if (!auth.value?.user) {
+        router.visit('/login');
+        return;
+    }
+    if (reviewRating.value < 1 || reviewRating.value > 5) {
+        reviewError.value = 'Please select a rating (1-5 stars).';
+        return;
+    }
+    submittingReview.value = true;
+    reviewError.value = '';
+    try {
+        const { data } = await axios.post(`/products/${props.product.id}/reviews`, {
+            rating: reviewRating.value,
+            comment: reviewComment.value || null,
+        });
+        reviews.value.unshift(data.review);
+        reviewsCount.value = data.reviews_count;
+        hasReviewed.value = true;
+        reviewRating.value = 0;
+        reviewComment.value = '';
+    } catch (err: any) {
+        reviewError.value = err.response?.data?.message || 'Failed to submit review.';
+    } finally {
+        submittingReview.value = false;
+    }
+}
+
+// --- Messenger ---
+const msgForm = ref({
+    sender_name: auth.value?.user?.name || '',
+    sender_email: auth.value?.user?.email || '',
+    subject: '',
+    body: '',
+    honeypot: '',
+});
+const sendingMessage = ref(false);
+const messageSent = ref(false);
+const messageError = ref('');
+
+async function sendMessage() {
+    sendingMessage.value = true;
+    messageError.value = '';
+    messageSent.value = false;
+    try {
+        await axios.post(`/products/${props.product.id}/messages`, msgForm.value);
+        messageSent.value = true;
+        msgForm.value.subject = '';
+        msgForm.value.body = '';
+    } catch (err: any) {
+        messageError.value = err.response?.data?.message || 'Failed to send message.';
+    } finally {
+        sendingMessage.value = false;
+    }
 }
 </script>
 

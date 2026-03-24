@@ -4,14 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\Department;
 use App\Models\Faculty;
+use App\Models\Like;
 use App\Models\Product;
 use App\Models\Tag;
+use App\Services\RevenueService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
 
 class ProductController extends Controller
 {
+    public function __construct(
+        private RevenueService $revenueService
+    ) {}
     public function index(Request $request): Response
     {
         $query = Product::published()
@@ -70,7 +75,7 @@ class ProductController extends Controller
         ]);
     }
 
-    public function show(string $slug): Response
+    public function show(Request $request, string $slug): Response
     {
         $product = Product::where('slug', $slug)
             ->where('status', 'published')
@@ -91,6 +96,21 @@ class ProductController extends Controller
         // Increment views
         $product->increment('views_count');
 
+        // Record view revenue (with anti-fraud)
+        $this->revenueService->recordViewRevenue($product, $request->ip());
+
+        // Check if current user has liked this product
+        $isLiked = false;
+        $userReview = null;
+        if ($user = $request->user()) {
+            $isLiked = Like::where('product_id', $product->id)
+                ->where('user_id', $user->id)
+                ->exists();
+            $userReview = $product->reviews()
+                ->where('user_id', $user->id)
+                ->first(['id', 'rating', 'comment']);
+        }
+
         $relatedProducts = Product::published()
             ->where('id', '!=', $product->id)
             ->where(function ($q) use ($product) {
@@ -104,6 +124,8 @@ class ProductController extends Controller
         return Inertia::render('products/Show', [
             'product' => $product,
             'relatedProducts' => $relatedProducts,
+            'isLiked' => $isLiked,
+            'userReview' => $userReview,
         ]);
     }
 }

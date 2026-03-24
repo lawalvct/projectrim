@@ -10,24 +10,16 @@ class Message extends Model
 {
     protected $guarded = ['id'];
 
-    public function sender(): BelongsTo
+    protected function casts(): array
     {
-        return $this->belongsTo(User::class, 'sender_id');
+        return [
+            'is_read' => 'boolean',
+        ];
     }
 
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function parent(): BelongsTo
-    {
-        return $this->belongsTo(Message::class, 'parent_id');
-    }
-
-    public function replies(): HasMany
-    {
-        return $this->hasMany(Message::class, 'parent_id');
     }
 
     public function recipients(): HasMany
