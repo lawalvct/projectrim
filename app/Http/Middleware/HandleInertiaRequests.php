@@ -2,6 +2,8 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Page;
+use App\Models\Setting;
 use Illuminate\Http\Request;
 use Inertia\Middleware;
 
@@ -42,6 +44,19 @@ class HandleInertiaRequests extends Middleware
                 'user' => $request->user(),
             ],
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
+            'navPages' => fn () => Page::published()->nav()->orderBy('sort_order')->get(['id', 'title', 'slug']),
+            'footerPages' => fn () => Page::published()->footer()->orderBy('sort_order')->get(['id', 'title', 'slug']),
+            'settings' => fn () => Setting::getValue('site_name') ? [
+                'site_name' => Setting::getValue('site_name'),
+                'site_tagline' => Setting::getValue('site_tagline'),
+                'site_description' => Setting::getValue('site_description'),
+                'contact_email' => Setting::getValue('contact_email'),
+                'contact_phone' => Setting::getValue('contact_phone'),
+                'facebook_url' => Setting::getValue('facebook_url'),
+                'twitter_url' => Setting::getValue('twitter_url'),
+                'linkedin_url' => Setting::getValue('linkedin_url'),
+                'currency_symbol' => Setting::getValue('currency_symbol', '₦'),
+            ] : [],
         ];
     }
 }

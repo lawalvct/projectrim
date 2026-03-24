@@ -19,6 +19,9 @@ declare module '@inertiajs/core' {
             name: string;
             auth: Auth;
             sidebarOpen: boolean;
+            navPages: Array<{ id: number; title: string; slug: string }>;
+            footerPages: Array<{ id: number; title: string; slug: string }>;
+            settings: Record<string, string>;
             [key: string]: unknown;
         };
     }
