@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import PublicLayout from '@/layouts/PublicLayout.vue';
+import HeroCarousel from '@/components/HeroCarousel.vue';
+import SearchBar from '@/components/SearchBar.vue';
+import ProductCard from '@/components/ProductCard.vue';
+import NewsletterSignup from '@/components/NewsletterSignup.vue';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { computed } from 'vue';
 
 const props = defineProps<{
@@ -42,46 +44,20 @@ const props = defineProps<{
 
 const page = usePage();
 const settings = computed(() => (page.props.settings as Record<string, string>) || {});
-
-function truncate(text: string | null, length: number): string {
-    if (!text) return '';
-    const stripped = text.replace(/<[^>]*>/g, '');
-    return stripped.length > length ? stripped.substring(0, length) + '...' : stripped;
-}
 </script>
 
 <template>
     <Head :title="settings.site_name || 'ProjectRim'" />
 
     <PublicLayout>
-        <!-- Hero Section -->
-        <section class="bg-gradient-to-br from-primary to-primary/80 py-20 text-white">
-            <div class="container mx-auto px-4 text-center">
-                <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                    {{ settings.site_name || 'ProjectRim' }}
-                </h1>
-                <p class="mx-auto mt-4 max-w-2xl text-lg text-white/90">
-                    {{ settings.site_description || 'Your trusted marketplace for research papers, projects, and academic materials. Browse, buy, or download for free.' }}
-                </p>
-                <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                    <Link href="/products">
-                        <Button size="lg" variant="secondary" class="gap-2 text-primary">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                            </svg>
-                            Browse Projects
-                        </Button>
-                    </Link>
-                    <Link v-if="!$page.props.auth?.user" href="/register">
-                        <Button size="lg" variant="outline" class="gap-2 border-white text-white hover:bg-white hover:text-primary">
-                            Get Started Free
-                        </Button>
-                    </Link>
-                    <Link v-else href="/dashboard">
-                        <Button size="lg" variant="outline" class="gap-2 border-white text-white hover:bg-white hover:text-primary">
-                            Go to Dashboard
-                        </Button>
-                    </Link>
+        <!-- Hero Carousel -->
+        <HeroCarousel :slides="featuredProducts || []" :settings="settings" />
+
+        <!-- Search Bar Section -->
+        <section class="-mt-6 relative z-10 px-4">
+            <div class="mx-auto max-w-2xl">
+                <div class="rounded-lg bg-background p-2 shadow-lg">
+                    <SearchBar show-button placeholder="Search projects, authors, institutions..." />
                 </div>
             </div>
         </section>
@@ -114,40 +90,7 @@ function truncate(text: string | null, length: number): string {
                     <Link href="/products" class="text-sm font-medium text-primary hover:underline">View All &rarr;</Link>
                 </div>
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    <Link v-for="product in featuredProducts" :key="product.id" :href="`/products/${product.slug}`" class="group">
-                        <Card class="h-full overflow-hidden transition-shadow hover:shadow-lg">
-                            <div class="aspect-[4/3] bg-muted">
-                                <img
-                                    v-if="product.images?.length"
-                                    :src="`/storage/${product.images[0].path}`"
-                                    :alt="product.title"
-                                    class="h-full w-full object-cover transition-transform group-hover:scale-105"
-                                />
-                                <div v-else class="flex h-full items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <CardContent class="p-4">
-                                <h3 class="line-clamp-2 text-sm font-semibold group-hover:text-primary">{{ product.title }}</h3>
-                                <p v-if="product.faculty" class="mt-1 text-xs text-muted-foreground">{{ product.faculty.name }}</p>
-                                <p class="mt-1 text-xs text-muted-foreground">by {{ product.user.name }}</p>
-                                <div class="mt-3 flex items-center justify-between">
-                                    <Badge v-if="product.is_paid" variant="secondary">
-                                        {{ settings.currency_symbol || '$' }}{{ product.price }}
-                                    </Badge>
-                                    <Badge v-else variant="outline" class="text-green-600">Free</Badge>
-                                    <span class="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
-                                        {{ product.downloads_count }}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </Link>
+                    <ProductCard v-for="product in featuredProducts" :key="product.id" :product="product" />
                 </div>
             </div>
         </section>
@@ -160,40 +103,7 @@ function truncate(text: string | null, length: number): string {
                     <Link href="/products" class="text-sm font-medium text-primary hover:underline">View All &rarr;</Link>
                 </div>
                 <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                    <Link v-for="product in recentProducts" :key="product.id" :href="`/products/${product.slug}`" class="group">
-                        <Card class="h-full overflow-hidden transition-shadow hover:shadow-lg">
-                            <div class="aspect-[4/3] bg-muted">
-                                <img
-                                    v-if="product.images?.length"
-                                    :src="`/storage/${product.images[0].path}`"
-                                    :alt="product.title"
-                                    class="h-full w-full object-cover transition-transform group-hover:scale-105"
-                                />
-                                <div v-else class="flex h-full items-center justify-center">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-12 w-12 text-muted-foreground/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1">
-                                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-                                    </svg>
-                                </div>
-                            </div>
-                            <CardContent class="p-4">
-                                <h3 class="line-clamp-2 text-sm font-semibold group-hover:text-primary">{{ product.title }}</h3>
-                                <p v-if="product.faculty" class="mt-1 text-xs text-muted-foreground">{{ product.faculty.name }}</p>
-                                <p class="mt-1 text-xs text-muted-foreground">by {{ product.user.name }}</p>
-                                <div class="mt-3 flex items-center justify-between">
-                                    <Badge v-if="product.is_paid" variant="secondary">
-                                        {{ settings.currency_symbol || '$' }}{{ product.price }}
-                                    </Badge>
-                                    <Badge v-else variant="outline" class="text-green-600">Free</Badge>
-                                    <span class="flex items-center gap-1 text-xs text-muted-foreground">
-                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
-                                        </svg>
-                                        {{ product.downloads_count }}
-                                    </span>
-                                </div>
-                            </CardContent>
-                        </Card>
-                    </Link>
+                    <ProductCard v-for="product in recentProducts" :key="product.id" :product="product" />
                 </div>
             </div>
         </section>
@@ -216,7 +126,20 @@ function truncate(text: string | null, length: number): string {
             </div>
         </section>
 
-        <!-- CTA Section -->
+        <!-- Newsletter Section -->
+        <section class="bg-muted/50 py-16">
+            <div class="container mx-auto px-4 text-center">
+                <h2 class="text-2xl font-bold">Stay Updated</h2>
+                <p class="mx-auto mt-3 max-w-xl text-muted-foreground">
+                    Get notified when new research projects are published. No spam, unsubscribe anytime.
+                </p>
+                <div class="mt-6">
+                    <NewsletterSignup />
+                </div>
+            </div>
+        </section>
+
+        <!-- Become a Seller CTA -->
         <section class="bg-primary/5 py-16">
             <div class="container mx-auto px-4 text-center">
                 <h2 class="text-2xl font-bold">Share Your Research with the World</h2>

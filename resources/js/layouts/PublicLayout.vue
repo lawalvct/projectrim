@@ -10,6 +10,7 @@ import {
     DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import SearchBar from '@/components/SearchBar.vue';
 
 const page = usePage();
 const auth = computed(() => page.props.auth as { user: any } | null);
@@ -49,6 +50,11 @@ const mobileMenuOpen = ref(false);
                         {{ p.title }}
                     </Link>
                 </nav>
+
+                <!-- Search Bar (Desktop) -->
+                <div class="hidden md:block flex-1 max-w-xs mx-4">
+                    <SearchBar compact placeholder="Search projects..." />
+                </div>
 
                 <!-- Desktop Right -->
                 <div class="hidden md:flex items-center gap-3">
@@ -105,6 +111,9 @@ const mobileMenuOpen = ref(false);
                     </SheetTrigger>
                     <SheetContent side="left" class="w-72">
                         <div class="flex flex-col gap-4 pt-6">
+                            <!-- Mobile Search -->
+                            <SearchBar compact placeholder="Search..." />
+                            <hr />
                             <Link href="/" class="text-sm font-medium" @click="mobileMenuOpen = false">Home</Link>
                             <Link href="/products" class="text-sm font-medium" @click="mobileMenuOpen = false">Browse</Link>
                             <Link
