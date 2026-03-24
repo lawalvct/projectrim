@@ -2,6 +2,8 @@
 
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\BrowseController;
+use App\Http\Controllers\CartController;
+use App\Http\Controllers\CheckoutController;
 use App\Http\Controllers\Dashboard\DashboardController;
 use App\Http\Controllers\Dashboard\ExploreController;
 use App\Http\Controllers\Dashboard\SellerApplicationController;
@@ -46,7 +48,20 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 Route::get('/auth/social/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
 Route::get('/auth/social/{provider}/callback', [SocialAuthController::class, 'callback'])->name('social.callback');
 
+// Cart (accessible to guests and authenticated users)
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart', [CartController::class, 'add'])->name('cart.add');
+Route::delete('/cart/{item}', [CartController::class, 'remove'])->name('cart.remove');
+Route::get('/api/cart/count', [CartController::class, 'count'])->name('cart.count');
+
 Route::middleware(['auth', 'verified'])->group(function () {
+    // Checkout
+    Route::get('checkout', [CheckoutController::class, 'index'])->name('checkout.index');
+    Route::post('checkout', [CheckoutController::class, 'process'])->name('checkout.process');
+    Route::get('checkout/callback/{gateway}/{order}', [CheckoutController::class, 'callback'])->name('checkout.callback');
+    Route::get('checkout/cancel/{order}', [CheckoutController::class, 'cancel'])->name('checkout.cancel');
+    Route::get('checkout/success/{order}', [CheckoutController::class, 'success'])->name('checkout.success');
+    Route::get('checkout/failed/{order}', [CheckoutController::class, 'failed'])->name('checkout.failed');
     Route::get('dashboard', [DashboardController::class, 'index'])->name('dashboard');
     Route::get('dashboard/downloads', [UserDownloadController::class, 'index'])->name('dashboard.downloads');
     Route::get('dashboard/orders', [UserOrderController::class, 'index'])->name('dashboard.orders');

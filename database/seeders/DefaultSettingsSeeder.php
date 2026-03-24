@@ -43,6 +43,12 @@ class DefaultSettingsSeeder extends Seeder
             // Payment
             ['group' => 'payment', 'key' => 'currency', 'value' => 'NGN', 'type' => 'text'],
             ['group' => 'payment', 'key' => 'currency_symbol', 'value' => '₦', 'type' => 'text'],
+            ['group' => 'payment', 'key' => 'stripe_enabled', 'value' => 'false', 'type' => 'boolean'],
+            ['group' => 'payment', 'key' => 'paypal_enabled', 'value' => 'false', 'type' => 'boolean'],
+            ['group' => 'payment', 'key' => 'paystack_enabled', 'value' => 'false', 'type' => 'boolean'],
+            ['group' => 'payment', 'key' => 'flutterwave_enabled', 'value' => 'false', 'type' => 'boolean'],
+            ['group' => 'payment', 'key' => 'bank_transfer_enabled', 'value' => 'true', 'type' => 'boolean'],
+            ['group' => 'payment', 'key' => 'bank_transfer_details', 'value' => '', 'type' => 'textarea'],
 
             // SEO
             ['group' => 'seo', 'key' => 'meta_title', 'value' => 'ProjectRim - Research Papers & Projects Marketplace', 'type' => 'text'],

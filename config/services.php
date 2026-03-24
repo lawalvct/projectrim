@@ -53,4 +53,25 @@ return [
         'redirect' => env('TWITTER_REDIRECT_URI', '/auth/social/twitter/callback'),
     ],
 
+    'stripe' => [
+        'key' => env('STRIPE_KEY'),
+        'secret' => env('STRIPE_SECRET'),
+    ],
+
+    'paypal' => [
+        'client_id' => env('PAYPAL_CLIENT_ID'),
+        'secret' => env('PAYPAL_SECRET'),
+        'mode' => env('PAYPAL_MODE', 'sandbox'), // sandbox or live
+    ],
+
+    'paystack' => [
+        'public_key' => env('PAYSTACK_PUBLIC_KEY'),
+        'secret_key' => env('PAYSTACK_SECRET_KEY'),
+    ],
+
+    'flutterwave' => [
+        'public_key' => env('FLUTTERWAVE_PUBLIC_KEY'),
+        'secret_key' => env('FLUTTERWAVE_SECRET_KEY'),
+    ],
+
 ];

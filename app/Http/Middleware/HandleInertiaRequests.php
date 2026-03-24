@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Models\Cart;
 use App\Models\Page;
 use App\Models\Setting;
 use Illuminate\Http\Request;
@@ -46,7 +47,10 @@ class HandleInertiaRequests extends Middleware
             'sidebarOpen' => ! $request->hasCookie('sidebar_state') || $request->cookie('sidebar_state') === 'true',
             'flash' => [
                 'status' => fn () => $request->session()->get('status'),
+                'success' => fn () => $request->session()->get('success'),
+                'info' => fn () => $request->session()->get('info'),
             ],
+            'cartCount' => fn () => $this->getCartCount($request),
             'navPages' => fn () => Page::published()->nav()->orderBy('sort_order')->get(['id', 'title', 'slug']),
             'footerPages' => fn () => Page::published()->footer()->orderBy('sort_order')->get(['id', 'title', 'slug']),
             'settings' => fn () => Setting::getValue('site_name') ? [
@@ -61,5 +65,16 @@ class HandleInertiaRequests extends Middleware
                 'currency_symbol' => Setting::getValue('currency_symbol', '₦'),
             ] : [],
         ];
+    }
+
+    private function getCartCount(Request $request): int
+    {
+        if ($user = $request->user()) {
+            $cart = Cart::where('user_id', $user->id)->first();
+        } else {
+            $cart = Cart::where('session_id', $request->session()->getId())->first();
+        }
+
+        return $cart ? $cart->items()->count() : 0;
     }
 }

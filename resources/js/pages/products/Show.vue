@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Head, Link, usePage } from '@inertiajs/vue3';
+import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import PublicLayout from '@/layouts/PublicLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -103,6 +103,16 @@ function formatDate(date: string | null): string {
 
 function renderStars(rating: number): string {
     return '★'.repeat(Math.round(rating)) + '☆'.repeat(5 - Math.round(rating));
+}
+
+const addingToCart = ref(false);
+
+function addToCart() {
+    addingToCart.value = true;
+    router.post('/cart', { product_id: props.product.id }, {
+        preserveScroll: true,
+        onFinish: () => { addingToCart.value = false; },
+    });
 }
 </script>
 
@@ -245,8 +255,8 @@ function renderStars(rating: number): string {
                             </div>
 
                             <div class="mt-4 space-y-2">
-                                <Button v-if="product.is_paid" class="w-full" size="lg">
-                                    Add to Cart
+                                <Button v-if="product.is_paid" class="w-full" size="lg" :disabled="addingToCart" @click="addToCart">
+                                    {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
                                 </Button>
                                 <Button v-else class="w-full" size="lg">
                                     Download Free
