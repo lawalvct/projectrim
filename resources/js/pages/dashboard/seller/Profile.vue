@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { Head, useForm, usePage } from '@inertiajs/vue3';
 import { Store, Upload, X } from 'lucide-vue-next';
+import RichTextEditor from '@/components/RichTextEditor.vue';
 import { computed, ref } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -123,11 +124,8 @@ const flash = computed(() => (page.props.flash as any)?.success);
 
                         <div>
                             <Label for="bio">Bio / About</Label>
-                            <textarea
-                                id="bio"
+                            <RichTextEditor
                                 v-model="form.bio"
-                                rows="4"
-                                class="w-full rounded-md border bg-background px-3 py-2 text-sm"
                                 placeholder="Tell buyers about yourself or your business..."
                             />
                             <p v-if="form.errors.bio" class="mt-1 text-xs text-red-500">{{ form.errors.bio }}</p>

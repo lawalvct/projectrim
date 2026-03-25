@@ -171,3 +171,29 @@
         @apply bg-background text-foreground;
     }
 }
+
+/* ── Sidebar thin scrollbars ──────────────────────────────────── */
+/* Firefox */
+[data-sidebar="sidebar"] * {
+    scrollbar-width: thin;
+    scrollbar-color: var(--sidebar-ring) transparent;
+}
+
+/* Webkit (Chrome / Edge / Safari) */
+[data-sidebar="sidebar"] ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+}
+
+[data-sidebar="sidebar"] ::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+[data-sidebar="sidebar"] ::-webkit-scrollbar-thumb {
+    background: var(--sidebar-ring);
+    border-radius: 2px;
+}
+
+[data-sidebar="sidebar"] ::-webkit-scrollbar-thumb:hover {
+    background: var(--sidebar-primary);
+}
