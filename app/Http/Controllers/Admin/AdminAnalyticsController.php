@@ -11,6 +11,13 @@ use Illuminate\Support\Facades\DB;
 
 class AdminAnalyticsController extends Controller
 {
+    private function monthExpression(): string
+    {
+        return DB::getDriverName() === 'sqlite'
+            ? "strftime('%Y-%m', created_at)"
+            : "DATE_FORMAT(created_at, '%Y-%m')";
+    }
+
     public function products()
     {
         $topByViews = Product::orderByDesc('views_count')->take(20)->get(['id', 'title', 'slug', 'views_count', 'downloads_count', 'likes_count']);
@@ -23,7 +30,7 @@ class AdminAnalyticsController extends Controller
             ->take(20)
             ->get();
 
-        $monthlyUploads = Product::selectRaw("strftime('%Y-%m', created_at) as month, count(*) as count")
+        $monthlyUploads = Product::selectRaw($this->monthExpression().' as month, count(*) as count')
             ->where('created_at', '>=', now()->subMonths(12))
             ->groupBy('month')
             ->orderBy('month')
@@ -41,7 +48,7 @@ class AdminAnalyticsController extends Controller
             ->take(20)
             ->get();
 
-        $monthlyRegistrations = User::selectRaw("strftime('%Y-%m', created_at) as month, count(*) as count")
+        $monthlyRegistrations = User::selectRaw($this->monthExpression().' as month, count(*) as count')
             ->where('created_at', '>=', now()->subMonths(12))
             ->groupBy('month')
             ->orderBy('month')
