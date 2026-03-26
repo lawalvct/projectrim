@@ -100,25 +100,85 @@
             </div>
         </div>
 
-        {{-- Recent Orders --}}
+        {{-- Monthly Views & Downloads Chart --}}
         <div class="rounded-xl border bg-white shadow-sm">
             <div class="flex items-center justify-between border-b px-4 py-3">
-                <h3 class="font-semibold text-gray-800">Recent Orders</h3>
-                <a href="{{ route('admin.orders.index') }}" class="text-xs text-brand-light hover:underline">View all →</a>
+                <h3 class="font-semibold text-gray-800">Views &amp; Downloads ({{ now()->year }})</h3>
+                <div class="flex items-center gap-3 text-xs">
+                    <span class="flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-brand-primary"></span> Views</span>
+                    <span class="flex items-center gap-1"><span class="inline-block h-2.5 w-2.5 rounded-full bg-brand-light"></span> Downloads</span>
+                </div>
             </div>
-            <div class="divide-y">
-                @foreach ($recentOrders as $order)
-                    <div class="flex items-center justify-between px-4 py-2.5">
-                        <div>
-                            <a href="{{ route('admin.orders.show', $order) }}" class="text-sm font-medium hover:text-brand-primary">{{ $order->order_number }}</a>
-                            <div class="text-xs text-gray-500">{{ $order->user->name ?? 'Guest' }} · ${{ number_format($order->total, 2) }}</div>
-                        </div>
-                        <span class="rounded-full px-2 py-0.5 text-xs font-medium
-                            {{ $order->status === 'completed' ? 'bg-green-100 text-green-700' : ($order->status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700') }}">
-                            {{ ucfirst($order->status) }}
-                        </span>
-                    </div>
-                @endforeach
+            <div class="p-4">
+                @php
+                    $months = $allMonths->keys()->values();
+                    $viewsData = $allMonths->pluck('views')->values();
+                    $downloadsData = $allMonths->pluck('downloads')->values();
+                    $maxVal = max(1, max($viewsData->max(), $downloadsData->max()));
+
+                    // Chart dimensions
+                    $chartW = 540;
+                    $chartH = 180;
+                    $padL = 40; // left padding for Y-axis
+                    $padR = 10;
+                    $padT = 10;
+                    $padB = 24; // bottom padding for X-axis
+                    $plotW = $chartW - $padL - $padR;
+                    $plotH = $chartH - $padT - $padB;
+
+                    // Y-axis ticks (5 steps)
+                    $ySteps = 4;
+                    $niceMax = $maxVal;
+                    $yTicks = [];
+                    for ($i = 0; $i <= $ySteps; $i++) {
+                        $yTicks[] = round(($niceMax / $ySteps) * $i);
+                    }
+
+                    // Build polyline points
+                    $viewsPoints = [];
+                    $downloadsPoints = [];
+                    foreach ($months as $i => $m) {
+                        $x = $padL + ($plotW / max(1, count($months) - 1)) * $i;
+                        $yV = $padT + $plotH - (($viewsData[$i] / $niceMax) * $plotH);
+                        $yD = $padT + $plotH - (($downloadsData[$i] / $niceMax) * $plotH);
+                        $viewsPoints[] = round($x, 1) . ',' . round($yV, 1);
+                        $downloadsPoints[] = round($x, 1) . ',' . round($yD, 1);
+                    }
+                @endphp
+                <svg viewBox="0 0 {{ $chartW }} {{ $chartH }}" class="w-full h-auto" preserveAspectRatio="xMidYMid meet">
+                    {{-- Grid lines & Y-axis labels --}}
+                    @foreach ($yTicks as $i => $tick)
+                        @php $y = $padT + $plotH - (($tick / $niceMax) * $plotH); @endphp
+                        <line x1="{{ $padL }}" y1="{{ $y }}" x2="{{ $chartW - $padR }}" y2="{{ $y }}" stroke="#e5e7eb" stroke-width="0.5" />
+                        <text x="{{ $padL - 4 }}" y="{{ $y + 3 }}" text-anchor="end" class="fill-gray-400" style="font-size: 9px;">{{ number_format($tick) }}</text>
+                    @endforeach
+
+                    {{-- X-axis month labels --}}
+                    @foreach ($months as $i => $m)
+                        @php $x = $padL + ($plotW / max(1, count($months) - 1)) * $i; @endphp
+                        <text x="{{ $x }}" y="{{ $chartH - 4 }}" text-anchor="middle" class="fill-gray-400" style="font-size: 9px;">{{ \Carbon\Carbon::parse($m . '-01')->format('M') }}</text>
+                    @endforeach
+
+                    {{-- Views line --}}
+                    <polyline points="{{ implode(' ', $viewsPoints) }}" fill="none" stroke="var(--color-brand-primary, #0a4b76)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+                    {{-- Downloads line --}}
+                    <polyline points="{{ implode(' ', $downloadsPoints) }}" fill="none" stroke="var(--color-brand-light, #1f90bb)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+
+                    {{-- Data point dots --}}
+                    @foreach ($months as $i => $m)
+                        @php
+                            $x = $padL + ($plotW / max(1, count($months) - 1)) * $i;
+                            $yV = $padT + $plotH - (($viewsData[$i] / $niceMax) * $plotH);
+                            $yD = $padT + $plotH - (($downloadsData[$i] / $niceMax) * $plotH);
+                        @endphp
+                        <circle cx="{{ round($x, 1) }}" cy="{{ round($yV, 1) }}" r="3" fill="var(--color-brand-primary, #0a4b76)">
+                            <title>{{ \Carbon\Carbon::parse($m . '-01')->format('M') }}: {{ number_format($viewsData[$i]) }} views</title>
+                        </circle>
+                        <circle cx="{{ round($x, 1) }}" cy="{{ round($yD, 1) }}" r="3" fill="var(--color-brand-light, #1f90bb)">
+                            <title>{{ \Carbon\Carbon::parse($m . '-01')->format('M') }}: {{ number_format($downloadsData[$i]) }} downloads</title>
+                        </circle>
+                    @endforeach
+                </svg>
             </div>
         </div>
 
