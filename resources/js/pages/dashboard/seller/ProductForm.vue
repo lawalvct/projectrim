@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { Head, useForm, usePage } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
+import { computed, ref, watch } from 'vue';
+import CoAuthorManager from '@/components/CoAuthorManager.vue';
+import FileUpload from '@/components/FileUpload.vue';
+import ImageUpload from '@/components/ImageUpload.vue';
+import RichTextEditor from '@/components/RichTextEditor.vue';
+import TagInput from '@/components/TagInput.vue';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import RichTextEditor from '@/components/RichTextEditor.vue';
-import ImageUpload from '@/components/ImageUpload.vue';
-import FileUpload from '@/components/FileUpload.vue';
-import TagInput from '@/components/TagInput.vue';
-import CoAuthorManager from '@/components/CoAuthorManager.vue';
-import { ref, computed, watch } from 'vue';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 
 interface Department {
@@ -109,8 +109,12 @@ const form = useForm({
 
 // Filtered departments based on selected faculty
 const filteredDepartments = computed(() => {
-    if (!form.faculty_id) return [];
+    if (!form.faculty_id) {
+        return [];
+    }
+
     const faculty = props.faculties.find((f) => f.id.toString() === form.faculty_id);
+
     return faculty?.departments ?? [];
 });
 
@@ -120,7 +124,10 @@ watch(() => form.faculty_id, () => {
 });
 
 const existingImages = computed(() => {
-    if (!props.product?.images) return [];
+    if (!props.product?.images) {
+        return [];
+    }
+
     return props.product.images.filter((img) => !form.remove_images.includes(img.id));
 });
 
@@ -146,60 +153,19 @@ const degreeOptions = [
 function submit(status: 'draft' | 'pending') {
     form.status = status;
 
-    const formData = new FormData();
+    const url = isEditing.value
+        ? `/dashboard/seller/products/${props.product!.id}`
+        : '/dashboard/seller/products';
 
-    // Add all simple fields
-    const fields = [
-        'title', 'faculty_id', 'department_id', 'abstract', 'table_of_content',
-        'chapter_one', 'meta_description', 'meta_keywords', 'document_type',
-        'class_of_degree', 'institution', 'location_country', 'location_region',
-        'date_available', 'price', 'status',
-    ] as const;
-
-    fields.forEach((field) => {
-        const val = form[field];
-        if (val !== null && val !== undefined && val !== '') {
-            formData.append(field, String(val));
-        }
-    });
-
-    // Tags
-    form.tags.forEach((tag, i) => {
-        formData.append(`tags[${i}]`, tag);
-    });
-
-    // Images
-    form.images.forEach((file, i) => {
-        formData.append(`images[${i}]`, file);
-    });
-
-    // Project file
-    if (form.project_file) {
-        formData.append('project_file', form.project_file);
-    }
-
-    // Remove images
-    form.remove_images.forEach((id, i) => {
-        formData.append(`remove_images[${i}]`, String(id));
-    });
-
-    // Co-authors
-    form.co_authors.forEach((author, i) => {
-        formData.append(`co_authors[${i}][user_id]`, String(author.user_id));
-        formData.append(`co_authors[${i}][contribution_percentage]`, String(author.contribution_percentage));
-    });
+    const options = {
+        forceFormData: true,
+        preserveScroll: true,
+    };
 
     if (isEditing.value) {
-        formData.append('_method', 'PUT');
-        form.post(`/dashboard/seller/products/${props.product!.id}`, {
-            data: formData,
-            forceFormData: true,
-        });
+        form.put(url, options);
     } else {
-        form.post('/dashboard/seller/products', {
-            data: formData,
-            forceFormData: true,
-        });
+        form.post(url, options);
     }
 }
 </script>
@@ -434,21 +400,34 @@ function submit(status: 'draft' | 'pending') {
                         <span v-else-if="isEditing">Status: {{ product?.status }}</span>
                     </div>
                     <div class="flex gap-3">
-                        <Button
-                            type="button"
-                            variant="outline"
-                            :disabled="form.processing"
-                            @click="submit('draft')"
-                        >
-                            Save as Draft
-                        </Button>
-                        <Button
-                            type="button"
-                            :disabled="form.processing"
-                            @click="submit('pending')"
-                        >
-                            Submit for Review
-                        </Button>
+                        <!-- General tab: only Next -->
+                        <template v-if="activeTab === 'general'">
+                            <Button
+                                type="button"
+                                @click="activeTab = 'data'"
+                            >
+                                Next
+                            </Button>
+                        </template>
+
+                        <!-- Data tab: submit actions -->
+                        <template v-else>
+                            <Button
+                                type="button"
+                                variant="outline"
+                                :disabled="form.processing"
+                                @click="submit('draft')"
+                            >
+                                Save as Draft
+                            </Button>
+                            <Button
+                                type="button"
+                                :disabled="form.processing"
+                                @click="submit('pending')"
+                            >
+                                Submit for Review
+                            </Button>
+                        </template>
                     </div>
                 </div>
             </form>
