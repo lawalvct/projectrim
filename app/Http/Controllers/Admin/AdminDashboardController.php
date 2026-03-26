@@ -34,7 +34,7 @@ class AdminDashboardController extends Controller
         ];
 
         $pending = [
-            'reviews' => Review::whereNull('approved_at')->count(),
+            'reviews' => Review::where('is_approved', false)->count(),
             'seller_apps' => User::where('role', 'user')->whereHas('sellerProfile')->where('is_seller_approved', false)->count(),
             'payouts' => PayoutRequest::where('status', 'pending')->count(),
         ];

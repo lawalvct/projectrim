@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Http\Responses\LoginResponse;
 use App\Listeners\MergeGuestCartOnLogin;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
@@ -10,6 +11,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Validation\Rules\Password;
+use Laravel\Fortify\Contracts\LoginResponse as LoginResponseContract;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -18,7 +20,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
     }
 
     /**
