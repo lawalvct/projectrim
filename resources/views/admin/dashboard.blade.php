@@ -5,36 +5,36 @@
 @section('content')
     {{-- Stats Grid --}}
     <div class="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
+        <a href="{{ route('admin.users.index') }}" class="block rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
             <div class="text-xs font-medium text-gray-500 uppercase">Total Users</div>
             <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($stats['total_users']) }}</div>
             <div class="mt-1 text-xs text-green-600">+{{ $stats['users_this_month'] }} this month</div>
-        </div>
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
+        </a>
+        <a href="{{ route('admin.products.index') }}" class="block rounded-xl border bg-white p-4 shadow-sm hover:shadow-md transition-shadow">
             <div class="text-xs font-medium text-gray-500 uppercase">Total Products</div>
             <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($stats['total_products']) }}</div>
             <div class="mt-1 text-xs text-green-600">+{{ $stats['products_this_month'] }} this month</div>
-        </div>
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
+        </a>
+        <a href="{{ route('admin.analytics.products') }}" class="block rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="text-xs font-medium text-gray-500 uppercase">Downloads</div>
             <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($stats['total_downloads']) }}</div>
             <div class="mt-1 text-xs text-green-600">+{{ $stats['downloads_this_month'] }} this month</div>
-        </div>
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
+        </a>
+        <a href="{{ route('admin.orders.index') }}" class="block rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="text-xs font-medium text-gray-500 uppercase">Orders</div>
             <div class="mt-1 text-2xl font-bold text-gray-900">{{ number_format($stats['total_orders']) }}</div>
             <div class="mt-1 text-xs text-green-600">+{{ $stats['orders_this_month'] }} this month</div>
-        </div>
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
+        </a>
+        <a href="{{ route('admin.analytics.products') }}" class="block rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="text-xs font-medium text-gray-500 uppercase">Revenue (Earnings)</div>
             <div class="mt-1 text-2xl font-bold text-gray-900">${{ number_format($stats['total_revenue'], 2) }}</div>
             <div class="mt-1 text-xs text-green-600">+${{ number_format($stats['revenue_this_month'], 2) }} this month</div>
-        </div>
-        <div class="rounded-xl border bg-white p-4 shadow-sm">
+        </a>
+        <a href="{{ route('admin.orders.index') }}" class="block rounded-xl border bg-white p-4 shadow-sm transition-shadow hover:shadow-md">
             <div class="text-xs font-medium text-gray-500 uppercase">Sales Revenue</div>
             <div class="mt-1 text-2xl font-bold text-gray-900">${{ number_format($stats['orders_revenue'], 2) }}</div>
             <div class="mt-1 text-xs text-green-600">+${{ number_format($stats['orders_revenue_this_month'], 2) }} this month</div>
-        </div>
+        </a>
     </div>
 
     {{-- Pending Actions --}}
