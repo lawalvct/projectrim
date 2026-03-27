@@ -27,7 +27,7 @@
 
                 <div>
                     <label class="mb-1 block text-sm font-medium">Body</label>
-                    <textarea name="body" rows="12" class="w-full rounded-lg border px-3 py-2 text-sm font-mono focus:border-brand-accent focus:outline-none focus:ring-1 focus:ring-brand-accent" required>{{ old('body', $page->body ?? '') }}</textarea>
+                    <textarea id="body-editor" name="body" rows="12" class="w-full rounded-lg border px-3 py-2 text-sm" required>{{ old('body', $page->body ?? '') }}</textarea>
                     @error('body') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror
                 </div>
 
@@ -73,3 +73,19 @@
         </form>
     </div>
 @endsection
+
+@push('scripts')
+<script src="https://cdn.tiny.cloud/1/no-api-key/tinymce/7/tinymce.min.js" referrerpolicy="origin"></script>
+<script>
+    tinymce.init({
+        selector: '#body-editor',
+        height: 400,
+        menubar: false,
+        plugins: 'lists link image table code fullscreen preview wordcount',
+        toolbar: 'undo redo | blocks | bold italic underline strikethrough | alignleft aligncenter alignright alignjustify | bullist numlist outdent indent | link image table | code fullscreen',
+        content_style: 'body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; font-size: 14px; }',
+        branding: false,
+        promotion: false,
+    });
+</script>
+@endpush
