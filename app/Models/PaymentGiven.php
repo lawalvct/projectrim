@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class PaymentGiven extends Model
 {
+    protected $table = 'payments_given';
+
     protected $guarded = ['id'];
 
     protected function casts(): array

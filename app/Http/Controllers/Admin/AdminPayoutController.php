@@ -27,7 +27,7 @@ class AdminPayoutController extends Controller
         $payout->load('user.sellerProfile');
 
         $totalEarned = $payout->user->revenues()->sum('amount_usd');
-        $totalPaid = PaymentGiven::where('user_id', $payout->user_id)->sum('amount');
+        $totalPaid = PaymentGiven::where('user_id', $payout->user_id)->sum('amount_usd');
 
         return view('admin.payouts.show', compact('payout', 'totalEarned', 'totalPaid'));
     }
@@ -46,8 +46,8 @@ class AdminPayoutController extends Controller
         PaymentGiven::create([
             'user_id' => $payout->user_id,
             'payout_request_id' => $payout->id,
-            'amount' => $payout->amount,
-            'method' => $payout->method ?? 'bank_transfer',
+            'amount_usd' => $payout->amount_usd,
+            'payment_method' => $payout->paymentMethod?->name ?? 'bank_transfer',
             'reference' => 'ADMIN-' . now()->format('YmdHis'),
         ]);
 
