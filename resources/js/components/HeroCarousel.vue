@@ -38,11 +38,38 @@ const props = defineProps<{
 const api = ref<CarouselApi>();
 const current = ref(0);
 
+type UnifiedSlide =
+    | { type: 'admin'; data: AdminSlide }
+    | { type: 'branding' }
+    | { type: 'product'; data: Slide };
+
+function shuffle<T>(arr: T[]): T[] {
+    const a = [...arr];
+    for (let i = a.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [a[i], a[j]] = [a[j], a[i]];
+    }
+    return a;
+}
+
 const hasAdminSlides = computed(() => (props.carouselSlides?.length ?? 0) > 0);
-const totalSlides = computed(() => {
-    const adminCount = hasAdminSlides.value ? props.carouselSlides!.length : 1; // 1 = default branding slide
-    return adminCount + Math.min(props.slides.length, 4);
+
+const allSlides = computed<UnifiedSlide[]>(() => {
+    const items: UnifiedSlide[] = [];
+    if (hasAdminSlides.value) {
+        for (const s of props.carouselSlides!) {
+            items.push({ type: 'admin', data: s });
+        }
+    } else {
+        items.push({ type: 'branding' });
+    }
+    for (const s of props.slides.slice(0, 4)) {
+        items.push({ type: 'product', data: s });
+    }
+    return shuffle(items);
 });
+
+const totalSlides = computed(() => allSlides.value.length);
 
 function setApi(val: CarouselApi) {
     api.value = val;
@@ -69,94 +96,94 @@ function stripHtml(html: string | null): string {
             @init-api="setApi"
         >
             <CarouselContent>
-                <!-- Admin carousel slides (from Settings) -->
-                <CarouselItem v-for="(aSlide, idx) in carouselSlides" :key="'admin-' + idx">
-                    <div class="relative flex min-h-[420px] items-center justify-center text-white lg:min-h-[480px]" :class="(aSlide.title || aSlide.description) ? 'px-4 py-16' : ''">
-                        <div
-                            v-if="aSlide.image"
-                            class="absolute inset-0 bg-cover bg-center"
-                            :style="{ backgroundImage: `url(/storage/${aSlide.image})` }"
-                        />
-                        <!-- Dark overlay only when text content is present -->
-                        <div v-if="aSlide.title || aSlide.description" class="absolute inset-0 bg-black/50" />
-                        <!-- Text content only when title or description is provided -->
-                        <div v-if="aSlide.title || aSlide.description" class="relative mx-auto max-w-3xl text-center">
-                            <h1 v-if="aSlide.title" class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                                {{ aSlide.title }}
-                            </h1>
-                            <p v-if="aSlide.description" class="mx-auto mt-4 max-w-2xl text-lg text-white/90">
-                                {{ aSlide.description }}
-                            </p>
-                            <div v-if="aSlide.link" class="mt-8">
-                                <Link :href="aSlide.link">
-                                    <Button size="lg" variant="secondary" class="text-primary">
-                                        Learn More
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </CarouselItem>
-
-                <!-- Default branding slide (only if no admin slides) -->
-                <CarouselItem v-if="!hasAdminSlides">
-                    <div class="flex min-h-[420px] items-center justify-center px-4 py-16 text-white lg:min-h-[480px]">
-                        <div class="mx-auto max-w-3xl text-center">
-                            <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-                                {{ settings?.site_name || 'ProjectRim' }}
-                            </h1>
-                            <p class="mx-auto mt-4 max-w-2xl text-lg text-white/90">
-                                {{ settings?.site_description || 'Your trusted marketplace for research papers, projects, and academic materials.' }}
-                            </p>
-                            <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
-                                <Link href="/products">
-                                    <Button size="lg" variant="secondary" class="gap-2 text-primary">
-                                        Browse Projects
-                                    </Button>
-                                </Link>
-                                <Link href="/search">
-                                    <Button size="lg" variant="outline" class="gap-2 border-white text-white hover:bg-white hover:text-primary">
-                                        Advanced Search
-                                    </Button>
-                                </Link>
-                            </div>
-                        </div>
-                    </div>
-                </CarouselItem>
-
-                <!-- Featured product slides -->
-                <CarouselItem v-for="slide in slides.slice(0, 4)" :key="slide.id">
-                    <div class="relative flex min-h-[420px] items-center px-4 py-16 text-white lg:min-h-[480px]">
-                        <div
-                            v-if="slide.images?.length"
-                            class="absolute inset-0 bg-cover bg-center opacity-20"
-                            :style="{ backgroundImage: `url(/storage/${slide.images[0].path})` }"
-                        />
-                        <div class="relative mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
-                            <div class="flex flex-col justify-center">
-                                <span v-if="slide.faculty" class="mb-2 text-sm font-medium text-white/70">
-                                    {{ slide.faculty.name }}
-                                </span>
-                                <h2 class="text-3xl font-bold sm:text-4xl">{{ slide.title }}</h2>
-                                <p class="mt-3 text-white/80">{{ stripHtml(slide.abstract) }}</p>
-                                <p class="mt-2 text-sm text-white/60">by {{ slide.user.name }}</p>
-                                <div class="mt-6">
-                                    <Link :href="`/products/${slide.slug}`">
+                <CarouselItem v-for="(item, idx) in allSlides" :key="idx">
+                    <!-- Admin slide -->
+                    <template v-if="item.type === 'admin'">
+                        <div class="relative flex min-h-[420px] items-center justify-center text-white lg:min-h-[480px]" :class="(item.data.title || item.data.description) ? 'px-4 py-16' : ''">
+                            <div
+                                v-if="item.data.image"
+                                class="absolute inset-0 bg-cover bg-center"
+                                :style="{ backgroundImage: `url(/storage/${item.data.image})` }"
+                            />
+                            <div v-if="item.data.title || item.data.description" class="absolute inset-0 bg-black/50" />
+                            <div v-if="item.data.title || item.data.description" class="relative mx-auto max-w-3xl text-center">
+                                <h1 v-if="item.data.title" class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                                    {{ item.data.title }}
+                                </h1>
+                                <p v-if="item.data.description" class="mx-auto mt-4 max-w-2xl text-lg text-white/90">
+                                    {{ item.data.description }}
+                                </p>
+                                <div v-if="item.data.link" class="mt-8">
+                                    <Link :href="item.data.link">
                                         <Button size="lg" variant="secondary" class="text-primary">
-                                            View Project
+                                            Learn More
                                         </Button>
                                     </Link>
                                 </div>
                             </div>
-                            <div v-if="slide.images?.length" class="hidden overflow-hidden rounded-lg lg:block">
-                                <img
-                                    :src="`/storage/${slide.images[0].path}`"
-                                    :alt="slide.title"
-                                    class="h-full max-h-[320px] w-full object-cover"
-                                />
+                        </div>
+                    </template>
+
+                    <!-- Default branding slide -->
+                    <template v-else-if="item.type === 'branding'">
+                        <div class="flex min-h-[420px] items-center justify-center px-4 py-16 text-white lg:min-h-[480px]">
+                            <div class="mx-auto max-w-3xl text-center">
+                                <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                                    {{ settings?.site_name || 'ProjectRim' }}
+                                </h1>
+                                <p class="mx-auto mt-4 max-w-2xl text-lg text-white/90">
+                                    {{ settings?.site_description || 'Your trusted marketplace for research papers, projects, and academic materials.' }}
+                                </p>
+                                <div class="mt-8 flex flex-col items-center justify-center gap-4 sm:flex-row">
+                                    <Link href="/products">
+                                        <Button size="lg" variant="secondary" class="gap-2 text-primary">
+                                            Browse Projects
+                                        </Button>
+                                    </Link>
+                                    <Link href="/search">
+                                        <Button size="lg" variant="outline" class="gap-2 border-white text-white hover:bg-white hover:text-primary">
+                                            Advanced Search
+                                        </Button>
+                                    </Link>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    </template>
+
+                    <!-- Featured product slide -->
+                    <template v-else-if="item.type === 'product'">
+                        <div class="relative flex min-h-[420px] items-center px-4 py-16 text-white lg:min-h-[480px]">
+                            <div
+                                v-if="item.data.images?.length"
+                                class="absolute inset-0 bg-cover bg-center opacity-20"
+                                :style="{ backgroundImage: `url(/storage/${item.data.images[0].path})` }"
+                            />
+                            <div class="relative mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
+                                <div class="flex flex-col justify-center">
+                                    <span v-if="item.data.faculty" class="mb-2 text-sm font-medium text-white/70">
+                                        {{ item.data.faculty.name }}
+                                    </span>
+                                    <h2 class="text-3xl font-bold sm:text-4xl">{{ item.data.title }}</h2>
+                                    <p class="mt-3 text-white/80">{{ stripHtml(item.data.abstract) }}</p>
+                                    <p class="mt-2 text-sm text-white/60">by {{ item.data.user.name }}</p>
+                                    <div class="mt-6">
+                                        <Link :href="`/products/${item.data.slug}`">
+                                            <Button size="lg" variant="secondary" class="text-primary">
+                                                View Project
+                                            </Button>
+                                        </Link>
+                                    </div>
+                                </div>
+                                <div v-if="item.data.images?.length" class="hidden overflow-hidden rounded-lg lg:block">
+                                    <img
+                                        :src="`/storage/${item.data.images[0].path}`"
+                                        :alt="item.data.title"
+                                        class="h-full max-h-[320px] w-full object-cover"
+                                    />
+                                </div>
+                            </div>
+                        </div>
+                    </template>
                 </CarouselItem>
             </CarouselContent>
 

@@ -11,13 +11,14 @@
     {{-- Monthly Uploads Chart --}}
     <div class="rounded-xl border bg-white p-6 shadow-sm mb-6">
         <h3 class="mb-3 text-sm font-semibold text-gray-600 uppercase">Monthly Uploads (Last 12 Months)</h3>
-        <div class="flex items-end gap-1 h-40">
-            @php $maxUploads = $monthlyUploads->max() ?: 1; @endphp
+        @php $maxUploads = $monthlyUploads->max() ?: 1; @endphp
+        <div class="flex items-end gap-2" style="height: 180px;">
             @foreach ($monthlyUploads as $month => $count)
-                <div class="flex-1 flex flex-col items-center">
-                    <span class="text-xs text-gray-500 mb-1">{{ $count }}</span>
-                    <div class="w-full bg-brand-accent rounded-t" style="height: {{ ($count / $maxUploads) * 100 }}%"></div>
-                    <span class="text-[10px] text-gray-400 mt-1">{{ \Carbon\Carbon::parse($month . '-01')->format('M') }}</span>
+                @php $barHeight = max(($count / $maxUploads) * 150, $count > 0 ? 4 : 0); @endphp
+                <div class="flex-1 flex flex-col items-center justify-end h-full">
+                    <span class="text-[11px] font-medium text-gray-600 mb-1">{{ $count }}</span>
+                    <div class="w-full max-w-[36px] mx-auto bg-brand-accent rounded-t transition-all" style="height: {{ $barHeight }}px; min-width: 12px;"></div>
+                    <span class="text-[10px] text-gray-500 mt-1.5 font-medium">{{ \Carbon\Carbon::parse($month . '-01')->format('M') }}</span>
                 </div>
             @endforeach
         </div>

@@ -40,6 +40,7 @@
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="mb-1 block text-xs text-gray-500">Slide Image</label>
+                                    <p class="mb-1 text-xs text-gray-400">Recommended: 1920×600px (landscape). Max 2MB. If the image contains text, leave Title & Description blank.</p>
                                     {{-- Current image preview --}}
                                     <div x-show="slide.image && !slide._preview" class="mb-2">
                                         <img :src="'/storage/' + slide.image" class="h-28 w-full rounded-lg border object-cover" />
