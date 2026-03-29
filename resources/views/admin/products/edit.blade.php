@@ -33,6 +33,14 @@
                 </div>
 
                 <div>
+                    <label class="flex items-center gap-2 text-sm">
+                        <input type="hidden" name="is_featured" value="0">
+                        <input type="checkbox" name="is_featured" value="1" @checked(old('is_featured', $product->is_featured)) class="rounded">
+                        Featured on homepage
+                    </label>
+                </div>
+
+                <div>
                     <label class="mb-1 block text-sm font-medium">Status</label>
                     <select name="status" class="w-full rounded-lg border px-3 py-2 text-sm">
                         <option value="draft" @selected(old('status', $product->status) === 'draft')>Draft</option>

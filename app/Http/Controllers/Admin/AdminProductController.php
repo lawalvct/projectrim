@@ -58,6 +58,7 @@ class AdminProductController extends Controller
             'title' => 'required|string|max:255',
             'price' => 'required|numeric|min:0',
             'is_paid' => 'boolean',
+            'is_featured' => 'boolean',
             'status' => 'required|in:draft,pending,published,rejected',
         ]);
 

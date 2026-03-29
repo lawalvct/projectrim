@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Faculty;
 use App\Models\Product;
+use App\Models\Setting;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Inertia\Inertia;
@@ -38,12 +39,15 @@ class HomeController extends Controller
             'downloads' => (int) Product::where('status', 'published')->sum('downloads_count'),
         ];
 
+        $carouselSlides = json_decode(Setting::getValue('carousel_slides', '[]'), true) ?: [];
+
         return Inertia::render('Welcome', [
             'canRegister' => Features::enabled(Features::registration()),
             'featuredProducts' => $featuredProducts,
             'recentProducts' => $recentProducts,
             'faculties' => $faculties,
             'stats' => $stats,
+            'carouselSlides' => $carouselSlides,
         ]);
     }
 }

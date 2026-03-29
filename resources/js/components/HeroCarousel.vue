@@ -8,6 +8,7 @@ import {
     CarouselPrevious,
 } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
+import Autoplay from 'embla-carousel-autoplay';
 import { computed, ref } from 'vue';
 import type { CarouselApi } from '@/components/ui/carousel';
 
@@ -21,13 +22,27 @@ interface Slide {
     faculty?: { id: number; name: string } | null;
 }
 
+interface AdminSlide {
+    title: string;
+    description: string;
+    link: string;
+    image: string;
+}
+
 const props = defineProps<{
     slides: Slide[];
     settings?: Record<string, string>;
+    carouselSlides?: AdminSlide[];
 }>();
 
 const api = ref<CarouselApi>();
 const current = ref(0);
+
+const hasAdminSlides = computed(() => (props.carouselSlides?.length ?? 0) > 0);
+const totalSlides = computed(() => {
+    const adminCount = hasAdminSlides.value ? props.carouselSlides!.length : 1; // 1 = default branding slide
+    return adminCount + Math.min(props.slides.length, 4);
+});
 
 function setApi(val: CarouselApi) {
     api.value = val;
@@ -50,11 +65,41 @@ function stripHtml(html: string | null): string {
         <Carousel
             class="w-full"
             :opts="{ loop: true }"
+            :plugins="[Autoplay({ delay: 5000, stopOnInteraction: true, stopOnMouseEnter: false })]"
             @init-api="setApi"
         >
             <CarouselContent>
-                <!-- Default slide (always shown) -->
-                <CarouselItem>
+                <!-- Admin carousel slides (from Settings) -->
+                <CarouselItem v-for="(aSlide, idx) in carouselSlides" :key="'admin-' + idx">
+                    <div class="relative flex min-h-[420px] items-center justify-center text-white lg:min-h-[480px]" :class="(aSlide.title || aSlide.description) ? 'px-4 py-16' : ''">
+                        <div
+                            v-if="aSlide.image"
+                            class="absolute inset-0 bg-cover bg-center"
+                            :style="{ backgroundImage: `url(/storage/${aSlide.image})` }"
+                        />
+                        <!-- Dark overlay only when text content is present -->
+                        <div v-if="aSlide.title || aSlide.description" class="absolute inset-0 bg-black/50" />
+                        <!-- Text content only when title or description is provided -->
+                        <div v-if="aSlide.title || aSlide.description" class="relative mx-auto max-w-3xl text-center">
+                            <h1 v-if="aSlide.title" class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+                                {{ aSlide.title }}
+                            </h1>
+                            <p v-if="aSlide.description" class="mx-auto mt-4 max-w-2xl text-lg text-white/90">
+                                {{ aSlide.description }}
+                            </p>
+                            <div v-if="aSlide.link" class="mt-8">
+                                <Link :href="aSlide.link">
+                                    <Button size="lg" variant="secondary" class="text-primary">
+                                        Learn More
+                                    </Button>
+                                </Link>
+                            </div>
+                        </div>
+                    </div>
+                </CarouselItem>
+
+                <!-- Default branding slide (only if no admin slides) -->
+                <CarouselItem v-if="!hasAdminSlides">
                     <div class="flex min-h-[420px] items-center justify-center px-4 py-16 text-white lg:min-h-[480px]">
                         <div class="mx-auto max-w-3xl text-center">
                             <h1 class="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
@@ -82,7 +127,6 @@ function stripHtml(html: string | null): string {
                 <!-- Featured product slides -->
                 <CarouselItem v-for="slide in slides.slice(0, 4)" :key="slide.id">
                     <div class="relative flex min-h-[420px] items-center px-4 py-16 text-white lg:min-h-[480px]">
-                        <!-- Background image -->
                         <div
                             v-if="slide.images?.length"
                             class="absolute inset-0 bg-cover bg-center opacity-20"
@@ -122,7 +166,7 @@ function stripHtml(html: string | null): string {
             <!-- Dots -->
             <div class="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
                 <button
-                    v-for="(_, idx) in [null, ...slides.slice(0, 4)]"
+                    v-for="(_, idx) in totalSlides"
                     :key="idx"
                     class="h-2 w-2 rounded-full transition-colors"
                     :class="idx === current ? 'bg-white' : 'bg-white/40'"

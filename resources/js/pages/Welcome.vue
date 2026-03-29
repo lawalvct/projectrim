@@ -40,6 +40,7 @@ const props = defineProps<{
     }>;
     faculties?: Array<{ id: number; name: string; slug: string; products_count: number }>;
     stats?: { products: number; authors: number; downloads: number };
+    carouselSlides?: Array<{ title: string; description: string; link: string; image: string }>;
 }>();
 
 const page = usePage();
@@ -51,13 +52,18 @@ const settings = computed(() => (page.props.settings as Record<string, string>) 
 
     <PublicLayout>
         <!-- Hero Carousel -->
-        <HeroCarousel :slides="featuredProducts || []" :settings="settings" />
+        <HeroCarousel :slides="featuredProducts || []" :settings="settings" :carousel-slides="carouselSlides || []" />
 
         <!-- Search Bar Section -->
         <section class="-mt-6 relative z-10 px-4">
             <div class="mx-auto max-w-2xl">
                 <div class="rounded-lg bg-background p-2 shadow-lg">
                     <SearchBar show-button placeholder="Search projects, authors, institutions..." />
+                </div>
+                <div class="mt-2 text-center">
+                    <Link href="/search" class="text-sm text-muted-foreground hover:text-primary hover:underline">
+                        Advanced Search &rarr;
+                    </Link>
                 </div>
             </div>
         </section>
