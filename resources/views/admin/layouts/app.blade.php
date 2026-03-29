@@ -25,6 +25,11 @@
     </script>
     <style>
         [x-cloak] { display: none !important; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #337ab7; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #0a4b76; }
+        * { scrollbar-width: thin; scrollbar-color: #337ab7 transparent; }
     </style>
     <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
