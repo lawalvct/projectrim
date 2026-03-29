@@ -1,11 +1,22 @@
 <script setup lang="ts">
-import { Head, Link } from '@inertiajs/vue3';
+import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Download, Package, ExternalLink } from 'lucide-vue-next';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { dashboard } from '@/routes';
+import { computed } from 'vue';
 import type { BreadcrumbItem } from '@/types';
+
+const page = usePage();
+const settings = computed(() => (page.props.settings as Record<string, string>) || {});
+
+function triggerSmartLink() {
+    const enabled = settings.value.smart_link_enabled === '1';
+    const url = settings.value.smart_link_url;
+    if (!enabled || !url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
@@ -97,7 +108,7 @@ defineProps<{
 
                                 <!-- Action -->
                                 <div class="col-span-2 text-right">
-                                    <Link v-if="dl.product" :href="`/products/${dl.product.slug}`" class="inline-flex items-center gap-1 text-sm text-primary hover:underline">
+                                    <Link v-if="dl.product" :href="`/products/${dl.product.slug}`" class="inline-flex items-center gap-1 text-sm text-primary hover:underline" @click="triggerSmartLink">
                                         View <ExternalLink class="h-3 w-3" />
                                     </Link>
                                 </div>
