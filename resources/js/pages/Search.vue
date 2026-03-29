@@ -68,15 +68,33 @@ const sortOptions = [
 ];
 
 // Fetch departments when faculty changes
-watch(() => form.value.faculty, async (val) => {
+watch(() => form.value.faculty, async (val, oldVal) => {
+    const selectedDepartment = form.value.department;
     departments.value = [];
-    form.value.department = '';
-    if (!val) return;
+
+    if (!val) {
+        form.value.department = '';
+        return;
+    }
+
     try {
         const res = await fetch(`/api/departments/${val}`);
-        if (res.ok) departments.value = await res.json();
-    } catch { /* ignore */ }
-});
+        if (!res.ok) {
+            form.value.department = '';
+            return;
+        }
+
+        departments.value = await res.json();
+
+        const departmentExists = departments.value.some((department) => String(department.id) === selectedDepartment);
+
+        if ((oldVal && oldVal !== val) || (selectedDepartment && !departmentExists)) {
+            form.value.department = '';
+        }
+    } catch {
+        form.value.department = '';
+    }
+}, { immediate: true });
 
 function search() {
     const params: Record<string, string> = {};

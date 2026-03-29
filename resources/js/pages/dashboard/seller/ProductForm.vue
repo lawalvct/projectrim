@@ -141,14 +141,14 @@ function handleRemoveExistingImage(id: number) {
 }
 
 const degreeOptions = [
-    "Bachelor's Degree",
-    'Higher Diploma',
-    'Master Degree',
-    'Ordinary Diploma',
-    'Doctorate Degree',
-    'Personal',
-    'Professional',
-    'Post Graduate Degree',
+    'First Class',
+    'Second Class Upper',
+    'Second Class Lower',
+    'Third Class',
+    'Pass',
+    'Distinction',
+    'Credit',
+    'Merit',
 ];
 
 function submit(status: 'draft' | 'pending') {
