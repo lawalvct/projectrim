@@ -44,8 +44,14 @@ const showAdvanced = ref(
 );
 
 const degreeOptions = [
-    'First Class', 'Second Class Upper', 'Second Class Lower',
-    'Third Class', 'Pass', 'Distinction', 'Merit', 'PhD',
+    "Bachelor's Degree",
+    'Higher Diploma',
+    'Master Degree',
+    'Ordinary Diploma',
+    'Doctorate Degree',
+    'Personal',
+    'Professional',
+    'Post Graduate Degree',
 ];
 
 const documentTypes = [

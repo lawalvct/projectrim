@@ -105,6 +105,7 @@ const form = useForm({
         contribution_percentage: Number(a.contribution_percentage),
     })) ?? []) as Array<{ user_id: number; name: string; email: string; contribution_percentage: number }>,
     status: props.product?.status ?? 'draft',
+    notify_users: false,
 });
 
 // Filtered departments based on selected faculty
@@ -140,14 +141,14 @@ function handleRemoveExistingImage(id: number) {
 }
 
 const degreeOptions = [
-    'First Class',
-    'Second Class Upper',
-    'Second Class Lower',
-    'Third Class',
-    'Pass',
-    'Distinction',
-    'Credit',
-    'Merit',
+    "Bachelor's Degree",
+    'Higher Diploma',
+    'Master Degree',
+    'Ordinary Diploma',
+    'Doctorate Degree',
+    'Personal',
+    'Professional',
+    'Post Graduate Degree',
 ];
 
 function submit(status: 'draft' | 'pending') {
@@ -389,6 +390,22 @@ function submit(status: 'draft' | 'pending') {
                                 <Input type="number" v-model.number="form.price" min="0" step="0.01" placeholder="0 = Free" />
                                 <p class="mt-1 text-xs text-muted-foreground">Set to 0 for free download</p>
                             </div>
+                        </CardContent>
+                    </Card>
+
+                    <!-- Notification -->
+                    <Card v-if="!isEditing">
+                        <CardHeader>
+                            <h3 class="text-lg font-semibold">Notification</h3>
+                        </CardHeader>
+                        <CardContent>
+                            <label class="flex items-center gap-3 cursor-pointer">
+                                <input type="checkbox" v-model="form.notify_users" class="h-4 w-4 rounded border-gray-300 text-primary focus:ring-primary" />
+                                <div>
+                                    <span class="text-sm font-medium">Notify users about this product</span>
+                                    <p class="text-xs text-muted-foreground">Send an email to all registered users when this product is submitted.</p>
+                                </div>
+                            </label>
                         </CardContent>
                     </Card>
                 </div>

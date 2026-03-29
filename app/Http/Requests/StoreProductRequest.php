@@ -38,6 +38,7 @@ class StoreProductRequest extends FormRequest
             'co_authors.*.user_id' => ['required', 'exists:users,id'],
             'co_authors.*.contribution_percentage' => ['required', 'numeric', 'min:1', 'max:99'],
             'status' => ['nullable', 'in:draft,pending'],
+            'notify_users' => ['nullable', 'boolean'],
         ];
     }
 }

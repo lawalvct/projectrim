@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Seller;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Jobs\SendNewProductNotification;
 use App\Models\Country;
 use App\Models\Faculty;
 use App\Models\Product;
@@ -120,6 +121,11 @@ class SellerProductController extends Controller
 
             // Handle co-authors
             $this->syncCoAuthors($product, $validated['co_authors'] ?? []);
+
+            // Dispatch notification job if requested
+            if (!empty($validated['notify_users'])) {
+                SendNewProductNotification::dispatch($product);
+            }
 
             return redirect()->route('seller.products.index')
                 ->with('status', 'Product created successfully.');
