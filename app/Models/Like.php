@@ -7,6 +7,8 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Like extends Model
 {
+    const UPDATED_AT = null;
+
     protected $guarded = ['id'];
 
     public function user(): BelongsTo

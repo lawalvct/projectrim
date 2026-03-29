@@ -32,7 +32,7 @@ class LikeController extends Controller
 
         return response()->json([
             'liked' => $liked,
-            'likes_count' => $product->fresh()->likes_count,
+            'likes_count' => Like::where('product_id', $product->id)->count(),
         ]);
     }
 }

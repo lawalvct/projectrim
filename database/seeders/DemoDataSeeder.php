@@ -4,6 +4,7 @@ namespace Database\Seeders;
 
 use App\Models\Download;
 use App\Models\Faculty;
+use App\Models\Like;
 use App\Models\Product;
 use App\Models\ProductAuthor;
 use App\Models\ProductFile;
@@ -254,7 +255,7 @@ class DemoDataSeeder extends Seeder
                     'status' => 'published',
                     'views_count' => rand(10, 2500),
                     'downloads_count' => 0, // will be set from actual downloads
-                    'likes_count' => rand(0, 50),
+                    'likes_count' => 0, // will be set from actual likes
                     'is_featured' => $productIndex < 5,
                     'published_at' => $createdAt->copy()->addDays(rand(0, 3)),
                     'created_at' => $createdAt,
@@ -416,6 +417,38 @@ class DemoDataSeeder extends Seeder
         }
 
         $this->command->info('Demo data seeded: 20 users, 10 sellers, 50 products, downloads, views, and reviews.');
+
+        // ─── 8. LIKES (from user-role users + sellers) ───
+
+        $allUsers = $users->merge($sellers);
+
+        foreach ($publishedProducts as $product) {
+            // Each product gets liked by 0–15 random unique users
+            $likerCount = rand(0, 15);
+            if ($likerCount === 0) {
+                continue;
+            }
+            $likers = $allUsers->random(min($likerCount, $allUsers->count()));
+            foreach ($likers as $liker) {
+                if (Like::where('product_id', $product->id)->where('user_id', $liker->id)->exists()) {
+                    continue;
+                }
+                Like::create([
+                    'product_id' => $product->id,
+                    'user_id'    => $liker->id,
+                    'created_at' => Carbon::now()->subDays(rand(0, 180)),
+                ]);
+            }
+        }
+
+        // Sync likes_count with actual likes table count
+        foreach ($allProducts as $product) {
+            $product->update([
+                'likes_count' => Like::where('product_id', $product->id)->count(),
+            ]);
+        }
+
+        $this->command->info('Likes seeded and likes_count synced from likes table.');
     }
 
     private function generateAbstract(string $title): string
