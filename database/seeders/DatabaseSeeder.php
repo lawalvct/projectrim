@@ -26,6 +26,7 @@ class DatabaseSeeder extends Seeder
             PaymentMethodSeeder::class,
             FacultyDepartmentSeeder::class,
             DefaultSettingsSeeder::class,
+            DemoDataSeeder::class,
         ]);
     }
 }

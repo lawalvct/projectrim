@@ -115,7 +115,7 @@
                     <div class="flex justify-between"><span class="text-gray-500">Downloads</span><span class="font-medium">{{ number_format($product->downloads_count) }}</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">Likes</span><span class="font-medium">{{ number_format($product->likes_count) }}</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">Reviews</span><span class="font-medium">{{ $product->reviews_count }}</span></div>
-                    <div class="flex justify-between"><span class="text-gray-500">Orders</span><span class="font-medium">{{ $product->orders_count }}</span></div>
+                    <div class="flex justify-between"><span class="text-gray-500">Orders</span><span class="font-medium">{{ $product->order_items_count }}</span></div>
                     <div class="flex justify-between"><span class="text-gray-500">Revenue</span><span class="font-medium">${{ number_format($totalRevenue, 2) }}</span></div>
                 </div>
             </div>

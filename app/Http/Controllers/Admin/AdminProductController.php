@@ -32,13 +32,14 @@ class AdminProductController extends Controller
     public function show(Product $product)
     {
         $product->load('user', 'faculty', 'department', 'images', 'files', 'tags', 'authors.user', 'reviews.user');
-        $product->loadCount(['reviews', 'orders', 'likes', 'downloads']);
+        $product->loadCount(['reviews', 'orderItems', 'likes', 'downloads']);
 
         $totalRevenue = $product->revenues()->sum('amount_usd');
-        $buyers = $product->orders()
+        $buyers = $product->orderItems()
             ->with('order.user')
             ->get()
-            ->map(fn ($item) => $item->order->user)
+            ->map(fn ($item) => $item->order?->user)
+            ->filter()
             ->unique('id');
 
         return view('admin.products.show', compact('product', 'totalRevenue', 'buyers'));

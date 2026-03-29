@@ -17,7 +17,7 @@
         <div class="rounded-xl border bg-white p-6 shadow-sm">
             <h2 class="mb-4 text-lg font-semibold">Carousel Slides</h2>
 
-            <form method="POST" action="{{ route('admin.settings.update') }}">
+            <form method="POST" action="{{ route('admin.settings.update') }}" enctype="multipart/form-data">
                 @csrf
                 <input type="hidden" name="group" value="carousel" />
 
@@ -28,19 +28,33 @@
                             <div class="grid gap-3 sm:grid-cols-2">
                                 <div>
                                     <label class="mb-1 block text-xs text-gray-500">Title</label>
-                                    <input type="text" x-model="slide.title" class="w-full rounded-lg border px-3 py-2 text-sm" />
+                                    <input type="text" :name="`slides[${index}][title]`" x-model="slide.title" class="w-full rounded-lg border px-3 py-2 text-sm" />
                                 </div>
                                 <div>
                                     <label class="mb-1 block text-xs text-gray-500">Link URL</label>
-                                    <input type="text" x-model="slide.link" class="w-full rounded-lg border px-3 py-2 text-sm" placeholder="/products" />
+                                    <input type="text" :name="`slides[${index}][link]`" x-model="slide.link" class="w-full rounded-lg border px-3 py-2 text-sm" placeholder="/products" />
                                 </div>
                                 <div class="sm:col-span-2">
                                     <label class="mb-1 block text-xs text-gray-500">Description</label>
-                                    <input type="text" x-model="slide.description" class="w-full rounded-lg border px-3 py-2 text-sm" />
+                                    <input type="text" :name="`slides[${index}][description]`" x-model="slide.description" class="w-full rounded-lg border px-3 py-2 text-sm" />
                                 </div>
                                 <div class="sm:col-span-2">
-                                    <label class="mb-1 block text-xs text-gray-500">Image URL</label>
-                                    <input type="text" x-model="slide.image" class="w-full rounded-lg border px-3 py-2 text-sm" placeholder="/images/slide.jpg" />
+                                    <label class="mb-1 block text-xs text-gray-500">Slide Image</label>
+                                    {{-- Current image preview --}}
+                                    <div x-show="slide.image && !slide._preview" class="mb-2">
+                                        <img :src="'/storage/' + slide.image" class="h-28 w-full rounded-lg border object-cover" />
+                                    </div>
+                                    {{-- New image preview --}}
+                                    <div x-show="slide._preview" class="mb-2">
+                                        <img :src="slide._preview" class="h-28 w-full rounded-lg border object-cover" />
+                                    </div>
+                                    <input
+                                        type="file"
+                                        :name="`slides[${index}][image_file]`"
+                                        accept="image/*"
+                                        @change="previewImage($event, index)"
+                                        class="w-full rounded-lg border px-3 py-1.5 text-sm file:mr-3 file:rounded-md file:border-0 file:bg-brand-primary file:px-3 file:py-1 file:text-xs file:text-white file:cursor-pointer"
+                                    />
                                 </div>
                             </div>
                         </div>
@@ -50,9 +64,6 @@
                 <div class="mb-4">
                     <button type="button" @click="addSlide()" class="rounded-lg border border-dashed px-4 py-2 text-sm text-gray-500 hover:bg-gray-50 w-full">+ Add Slide</button>
                 </div>
-
-                {{-- Hidden JSON field --}}
-                <input type="hidden" name="settings[carousel_slides]" :value="JSON.stringify(slides)" />
 
                 <button type="submit" class="rounded-lg bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-accent">Save Settings</button>
             </form>
@@ -68,13 +79,22 @@
                 }
                 if (!Array.isArray(existing)) existing = [];
 
+                // Add internal preview property
+                existing = existing.map(s => ({ ...s, _preview: null }));
+
                 return {
                     slides: existing,
                     addSlide() {
-                        this.slides.push({ title: '', description: '', link: '', image: '' });
+                        this.slides.push({ title: '', description: '', link: '', image: '', _preview: null });
                     },
                     removeSlide(index) {
                         this.slides.splice(index, 1);
+                    },
+                    previewImage(event, index) {
+                        const file = event.target.files[0];
+                        if (file) {
+                            this.slides[index]._preview = URL.createObjectURL(file);
+                        }
                     }
                 };
             }
