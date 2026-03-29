@@ -128,11 +128,26 @@ const liked = ref(props.isLiked);
 const likesCount = ref(props.product.likes_count);
 const togglingLike = ref(false);
 
+// --- Smart Link ---
+const smartLinkEnabled = computed(() => settings.value.smart_link_enabled === '1');
+const smartLinkUrl = computed(() => settings.value.smart_link_url || '');
+
+function triggerSmartLink() {
+    if (!smartLinkEnabled.value || !smartLinkUrl.value) return;
+    window.open(smartLinkUrl.value, '_blank', 'noopener,noreferrer');
+}
+
+function switchTab(tab: 'abstract' | 'toc' | 'chapter1' | 'reviews' | 'messenger') {
+    if (tab !== 'abstract') triggerSmartLink();
+    activeTab.value = tab;
+}
+
 async function toggleLike() {
     if (!auth.value?.user) {
         router.visit('/login');
         return;
     }
+    triggerSmartLink();
     togglingLike.value = true;
     try {
         const { data } = await axios.post(`/products/${props.product.id}/like`);
@@ -276,7 +291,7 @@ async function sendMessage() {
                                 type="button"
                                 class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                                 :class="activeTab === 'abstract' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-                                @click="activeTab = 'abstract'"
+                                @click="switchTab('abstract')"
                             >
                                 Abstract
                             </button>
@@ -285,7 +300,7 @@ async function sendMessage() {
                                 type="button"
                                 class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                                 :class="activeTab === 'toc' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-                                @click="activeTab = 'toc'"
+                                @click="switchTab('toc')"
                             >
                                 Table of Content
                             </button>
@@ -294,7 +309,7 @@ async function sendMessage() {
                                 type="button"
                                 class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                                 :class="activeTab === 'chapter1' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-                                @click="activeTab = 'chapter1'"
+                                @click="switchTab('chapter1')"
                             >
                                 Chapter 1
                             </button>
@@ -302,7 +317,7 @@ async function sendMessage() {
                                 type="button"
                                 class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                                 :class="activeTab === 'reviews' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-                                @click="activeTab = 'reviews'"
+                                @click="switchTab('reviews')"
                             >
                                 Reviews ({{ reviewsCount }})
                             </button>
@@ -310,7 +325,7 @@ async function sendMessage() {
                                 type="button"
                                 class="flex-1 rounded-md px-3 py-1.5 text-sm font-medium transition-colors"
                                 :class="activeTab === 'messenger' ? 'bg-background shadow-sm' : 'text-muted-foreground hover:text-foreground'"
-                                @click="activeTab = 'messenger'"
+                                @click="switchTab('messenger')"
                             >
                                 Messenger
                             </button>
@@ -427,7 +442,7 @@ async function sendMessage() {
                                 <Button v-if="product.is_paid" class="w-full" size="lg" :disabled="addingToCart" @click="addToCart">
                                     {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
                                 </Button>
-                                <a v-else :href="`/download/${product.id}`" class="w-full">
+                                <a v-else :href="`/download/${product.id}`" class="w-full" @click="triggerSmartLink">
                                     <Button class="w-full" size="lg">
                                         Download Free
                                     </Button>

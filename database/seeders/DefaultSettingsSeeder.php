@@ -30,6 +30,7 @@ class DefaultSettingsSeeder extends Seeder
 
             // Smart links
             ['group' => 'smartlinks', 'key' => 'smart_link_enabled', 'value' => '0', 'type' => 'boolean'],
+            ['group' => 'smartlinks', 'key' => 'smart_link_url', 'value' => '', 'type' => 'url'],
             ['group' => 'smartlinks', 'key' => 'smart_link_code', 'value' => '', 'type' => 'textarea'],
 
             // Seller

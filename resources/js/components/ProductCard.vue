@@ -20,14 +20,19 @@ const props = defineProps<{
 }>();
 
 const page = usePage();
-const currencySymbol = computed(() => {
-    const settings = (page.props.settings as Record<string, string>) || {};
-    return settings.currency_symbol || '$';
-});
+const settings = computed(() => (page.props.settings as Record<string, string>) || {});
+const currencySymbol = computed(() => settings.value.currency_symbol || '$');
+
+function triggerSmartLink() {
+    const enabled = settings.value.smart_link_enabled === '1';
+    const url = settings.value.smart_link_url;
+    if (!enabled || !url) return;
+    window.open(url, '_blank', 'noopener,noreferrer');
+}
 </script>
 
 <template>
-    <Link :href="`/products/${product.slug}`" class="group">
+    <Link :href="`/products/${product.slug}`" class="group" @click="triggerSmartLink">
         <Card class="h-full overflow-hidden transition-shadow hover:shadow-lg">
             <div class="aspect-[4/3] bg-muted">
                 <img

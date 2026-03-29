@@ -63,6 +63,8 @@ class HandleInertiaRequests extends Middleware
                 'twitter_url' => Setting::getValue('twitter_url'),
                 'linkedin_url' => Setting::getValue('linkedin_url'),
                 'currency_symbol' => Setting::getValue('currency_symbol', '₦'),
+                'smart_link_enabled' => Setting::getValue('smart_link_enabled', '0'),
+                'smart_link_url' => Setting::getValue('smart_link_url', ''),
             ] : [],
         ];
     }
