@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\NewsletterCampaign;
 use App\Models\NewsletterSubscriber;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Mail;
 
@@ -27,6 +28,7 @@ class AdminCampaignController extends Controller
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
+            'audience' => 'required|in:subscribers,users,sellers,all',
         ]);
 
         NewsletterCampaign::create($validated);
@@ -49,6 +51,7 @@ class AdminCampaignController extends Controller
         $validated = $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string',
+            'audience' => 'required|in:subscribers,users,sellers,all',
         ]);
 
         $campaign->update($validated);
@@ -65,9 +68,25 @@ class AdminCampaignController extends Controller
 
     public function send(NewsletterCampaign $campaign)
     {
-        $subscribers = NewsletterSubscriber::pluck('email');
+        $emails = collect();
 
-        foreach ($subscribers as $email) {
+        if (in_array($campaign->audience, ['subscribers', 'all'])) {
+            $emails = $emails->merge(NewsletterSubscriber::where('is_active', true)->pluck('email'));
+        }
+
+        if (in_array($campaign->audience, ['users', 'all'])) {
+            $emails = $emails->merge(User::pluck('email'));
+        }
+
+        if (in_array($campaign->audience, ['sellers', 'all'])) {
+            $emails = $emails->merge(
+                User::where('is_seller_approved', true)->pluck('email')
+            );
+        }
+
+        $emails = $emails->unique()->values();
+
+        foreach ($emails as $email) {
             Mail::raw($campaign->body, function ($message) use ($email, $campaign) {
                 $message->to($email)->subject($campaign->subject);
             });
@@ -75,9 +94,9 @@ class AdminCampaignController extends Controller
 
         $campaign->update([
             'sent_at' => now(),
-            'recipients_count' => $subscribers->count(),
+            'recipients_count' => $emails->count(),
         ]);
 
-        return back()->with('success', "Campaign sent to {$subscribers->count()} subscribers.");
+        return back()->with('success', "Campaign sent to {$emails->count()} recipients.");
     }
 }

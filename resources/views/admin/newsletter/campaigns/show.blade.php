@@ -16,9 +16,12 @@
 
             <div class="mb-6 rounded-lg border bg-gray-50 p-4 text-sm whitespace-pre-wrap">{{ $campaign->body }}</div>
 
-            @if ($campaign->recipients_count)
-                <p class="mb-4 text-sm text-gray-500">Sent to <strong>{{ $campaign->recipients_count }}</strong> recipients.</p>
-            @endif
+            <div class="mb-4 flex flex-wrap gap-3 text-sm text-gray-500">
+                <span>Audience: <strong class="text-gray-700">{{ ucfirst($campaign->audience ?? 'subscribers') }}</strong></span>
+                @if ($campaign->recipients_count)
+                    <span>&middot; Sent to <strong>{{ $campaign->recipients_count }}</strong> recipients</span>
+                @endif
+            </div>
 
             <div class="flex gap-2">
                 @unless ($campaign->sent_at)

@@ -22,6 +22,18 @@
                     @error('body') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
+                <div class="mb-4">
+                    <label class="mb-1 block text-sm font-medium">Audience</label>
+                    <select name="audience" class="w-full rounded-lg border px-3 py-2 text-sm">
+                        <option value="subscribers" {{ old('audience') === 'subscribers' ? 'selected' : '' }}>Subscribers</option>
+                        <option value="users" {{ old('audience') === 'users' ? 'selected' : '' }}>Users</option>
+                        <option value="sellers" {{ old('audience') === 'sellers' ? 'selected' : '' }}>Sellers</option>
+                        <option value="all" {{ old('audience') === 'all' ? 'selected' : '' }}>All</option>
+                    </select>
+                    <p class="mt-1 text-xs text-gray-400">Subscribers = newsletter list. Users = registered users. Sellers = approved sellers. All = everyone combined.</p>
+                    @error('audience') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
+                </div>
+
                 <div class="flex gap-2">
                     <button type="submit" class="rounded-lg bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-accent">Create</button>
                     <a href="{{ route('admin.campaigns.index') }}" class="rounded-lg border px-5 py-2 text-sm text-gray-600 hover:bg-gray-50">Cancel</a>
