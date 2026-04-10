@@ -41,6 +41,12 @@ class HomeController extends Controller
 
         $carouselSlides = json_decode(Setting::getValue('carousel_slides', '[]'), true) ?: [];
 
+        $carouselProducts = Product::published()
+            ->with(['user:id,name', 'faculty:id,name', 'images'])
+            ->inRandomOrder()
+            ->take(10)
+            ->get();
+
         return Inertia::render('Welcome', [
             'canRegister' => Features::enabled(Features::registration()),
             'featuredProducts' => $featuredProducts,
@@ -48,6 +54,7 @@ class HomeController extends Controller
             'faculties' => $faculties,
             'stats' => $stats,
             'carouselSlides' => $carouselSlides,
+            'carouselProducts' => $carouselProducts,
         ]);
     }
 }

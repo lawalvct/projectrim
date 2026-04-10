@@ -41,6 +41,15 @@ const props = defineProps<{
     faculties?: Array<{ id: number; name: string; slug: string; products_count: number }>;
     stats?: { products: number; authors: number; downloads: number };
     carouselSlides?: Array<{ title: string; description: string; link: string; image: string }>;
+    carouselProducts?: Array<{
+        id: number;
+        title: string;
+        slug: string;
+        abstract: string | null;
+        images: Array<{ id: number; path: string }>;
+        user: { id: number; name: string };
+        faculty: { id: number; name: string } | null;
+    }>;
 }>();
 
 const page = usePage();
@@ -52,7 +61,7 @@ const settings = computed(() => (page.props.settings as Record<string, string>) 
 
     <PublicLayout>
         <!-- Hero Carousel -->
-        <HeroCarousel :slides="featuredProducts || []" :settings="settings" :carousel-slides="carouselSlides || []" />
+        <HeroCarousel :slides="carouselProducts || []" :settings="settings" :carousel-slides="carouselSlides || []" />
 
         <!-- Search Bar Section -->
         <section class="-mt-6 relative z-10 px-4">

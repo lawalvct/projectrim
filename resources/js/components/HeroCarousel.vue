@@ -9,7 +9,7 @@ import {
 } from '@/components/ui/carousel';
 import { Button } from '@/components/ui/button';
 import Autoplay from 'embla-carousel-autoplay';
-import { computed, ref } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import type { CarouselApi } from '@/components/ui/carousel';
 
 interface Slide {
@@ -35,8 +35,25 @@ const props = defineProps<{
     carouselSlides?: AdminSlide[];
 }>();
 
+const CACHE_KEY = 'carousel_products';
+
 const api = ref<CarouselApi>();
 const current = ref(0);
+const cachedProducts = ref<Slide[]>([]);
+
+onMounted(() => {
+    try {
+        const stored = sessionStorage.getItem(CACHE_KEY);
+        if (stored) {
+            cachedProducts.value = JSON.parse(stored);
+            return;
+        }
+    } catch {}
+    cachedProducts.value = props.slides;
+    try {
+        sessionStorage.setItem(CACHE_KEY, JSON.stringify(props.slides));
+    } catch {}
+});
 
 type UnifiedSlide =
     | { type: 'admin'; data: AdminSlide }
@@ -63,7 +80,7 @@ const allSlides = computed<UnifiedSlide[]>(() => {
     } else {
         items.push({ type: 'branding' });
     }
-    for (const s of props.slides.slice(0, 4)) {
+    for (const s of cachedProducts.value) {
         items.push({ type: 'product', data: s });
     }
     return shuffle(items);
@@ -168,7 +185,11 @@ function stripHtml(html: string | null): string {
                                     <p class="mt-2 text-sm text-white/60">by {{ item.data.user.name }}</p>
                                     <div class="mt-6">
                                         <Link :href="`/products/${item.data.slug}`">
-                                            <Button size="lg" variant="secondary" class="text-primary">
+                                            <Button
+                                                size="lg"
+                                                variant="secondary"
+                                                class="bg-white font-semibold text-primary shadow-lg hover:bg-white/95"
+                                            >
                                                 View Project
                                             </Button>
                                         </Link>
