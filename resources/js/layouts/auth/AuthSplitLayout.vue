@@ -19,10 +19,15 @@ defineProps<{
         <div
             class="relative hidden h-full flex-col bg-muted p-10 text-white lg:flex dark:border-r"
         >
-            <div class="absolute inset-0 bg-zinc-900" />
+            <div class="absolute inset-0 bg-gradient-to-br from-blue-900 to-blue-700" />
+            <img
+                src="/images/login_image.png"
+                alt="Projectrim"
+                class="absolute inset-0 h-full w-full object-cover opacity-90"
+            />
             <Link
                 :href="home()"
-                class="relative z-20 flex items-center text-lg font-medium"
+                class="relative z-20 flex items-center text-lg font-medium drop-shadow-md"
             >
                 <AppLogoIcon class="mr-2 size-8 fill-current text-white" />
                 {{ name }}
