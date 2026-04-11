@@ -7,12 +7,18 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ref, watch } from 'vue';
+import axios from 'axios';
 
 interface Faculty {
     id: number;
     name: string;
     slug: string;
     products_count: number;
+}
+
+interface Department {
+    id: number;
+    name: string;
 }
 
 const props = defineProps<{
@@ -22,9 +28,11 @@ const props = defineProps<{
 }>();
 
 const selectedFaculty = ref(props.filters.faculty || '');
+const selectedDepartment = ref(props.filters.department || '');
 const selectedSort = ref(props.filters.sort || 'newest');
 const selectedPrice = ref(props.filters.price || '');
 const selectedDocType = ref(props.filters.document_type || '');
+const departments = ref<Department[]>([]);
 
 const documentTypes = [
     'Project', 'Thesis', 'Dissertation', 'Journal Article', 'Conference Paper',
@@ -44,6 +52,7 @@ const sortOptions = [
 function applyFilters() {
     const params: Record<string, string> = {};
     if (selectedFaculty.value) params.faculty = selectedFaculty.value;
+    if (selectedDepartment.value) params.department = selectedDepartment.value;
     if (selectedSort.value && selectedSort.value !== 'newest') params.sort = selectedSort.value;
     if (selectedPrice.value) params.price = selectedPrice.value;
     if (selectedDocType.value) params.document_type = selectedDocType.value;
@@ -53,15 +62,27 @@ function applyFilters() {
 
 function clearFilters() {
     selectedFaculty.value = '';
+    selectedDepartment.value = '';
     selectedSort.value = 'newest';
     selectedPrice.value = '';
     selectedDocType.value = '';
     router.get('/products', {}, { preserveState: true });
 }
 
-const hasFilters = () => selectedFaculty.value || selectedPrice.value || selectedDocType.value;
+const hasFilters = () => selectedFaculty.value || selectedDepartment.value || selectedPrice.value || selectedDocType.value;
 
-watch([selectedFaculty, selectedSort, selectedPrice, selectedDocType], () => {
+// Fetch departments when faculty changes
+watch(selectedFaculty, async (facultyId) => {
+    selectedDepartment.value = '';
+    departments.value = [];
+    if (!facultyId) return;
+    try {
+        const { data } = await axios.get(`/api/departments/${facultyId}`);
+        departments.value = data;
+    } catch {}
+}, { immediate: true });
+
+watch([selectedFaculty, selectedDepartment, selectedSort, selectedPrice, selectedDocType], () => {
     applyFilters();
 });
 </script>
@@ -89,6 +110,18 @@ watch([selectedFaculty, selectedSort, selectedPrice, selectedDocType], () => {
                         <SelectItem value="">All Faculties</SelectItem>
                         <SelectItem v-for="f in faculties" :key="f.id" :value="String(f.id)">
                             {{ f.name }} ({{ f.products_count }})
+                        </SelectItem>
+                    </SelectContent>
+                </Select>
+
+                <Select v-model="selectedDepartment" :disabled="!selectedFaculty">
+                    <SelectTrigger class="w-[180px]">
+                        <SelectValue :placeholder="selectedFaculty ? 'All Departments' : 'Select Faculty first'" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        <SelectItem value="">All Departments</SelectItem>
+                        <SelectItem v-for="d in departments" :key="d.id" :value="String(d.id)">
+                            {{ d.name }}
                         </SelectItem>
                     </SelectContent>
                 </Select>
@@ -144,6 +177,10 @@ watch([selectedFaculty, selectedSort, selectedPrice, selectedDocType], () => {
                 <Badge v-if="selectedDocType" variant="secondary" class="gap-1">
                     {{ selectedDocType }}
                     <button @click="selectedDocType = ''" class="ml-1 hover:text-destructive">&times;</button>
+                </Badge>
+                <Badge v-if="selectedDepartment" variant="secondary" class="gap-1">
+                    {{ departments.find(d => String(d.id) === selectedDepartment)?.name }}
+                    <button @click="selectedDepartment = ''" class="ml-1 hover:text-destructive">&times;</button>
                 </Badge>
                 <Badge v-if="selectedPrice" variant="secondary" class="gap-1">
                     {{ selectedPrice === 'free' ? 'Free' : 'Paid' }}
