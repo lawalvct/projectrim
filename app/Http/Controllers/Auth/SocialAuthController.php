@@ -10,13 +10,16 @@ use Laravel\Socialite\Facades\Socialite;
 
 class SocialAuthController extends Controller
 {
-    private const PROVIDERS = ['google', 'facebook', 'twitter'];
+    private const PROVIDERS = ['google', 'facebook', 'twitter', 'apple'];
 
     public function redirect(string $provider): RedirectResponse
     {
         abort_unless(in_array($provider, self::PROVIDERS), 404);
 
-        $driver = $provider === 'twitter' ? 'twitter-oauth-2' : $provider;
+        $driver = match ($provider) {
+            'twitter' => 'twitter-oauth-2',
+            default => $provider,
+        };
 
         return Socialite::driver($driver)->redirect();
     }
@@ -25,7 +28,10 @@ class SocialAuthController extends Controller
     {
         abort_unless(in_array($provider, self::PROVIDERS), 404);
 
-        $driver = $provider === 'twitter' ? 'twitter-oauth-2' : $provider;
+        $driver = match ($provider) {
+            'twitter' => 'twitter-oauth-2',
+            default => $provider,
+        };
 
         try {
             $socialUser = Socialite::driver($driver)->user();

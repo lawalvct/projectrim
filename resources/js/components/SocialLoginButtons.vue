@@ -8,7 +8,7 @@ import { Button } from '@/components/ui/button';
             <span class="relative z-10 bg-background px-2 text-muted-foreground">Or continue with</span>
         </div>
 
-        <div class="grid grid-cols-3 gap-3">
+        <div class="grid grid-cols-4 gap-3">
             <Button variant="outline" as-child class="w-full">
                 <a href="/auth/social/google/redirect">
                     <svg class="h-5 w-5" viewBox="0 0 24 24">
@@ -36,6 +36,15 @@ import { Button } from '@/components/ui/button';
                         <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/>
                     </svg>
                     <span class="sr-only">X (Twitter)</span>
+                </a>
+            </Button>
+
+            <Button variant="outline" as-child class="w-full">
+                <a href="/auth/social/apple/redirect">
+                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M17.05 20.28c-.98.95-2.05.88-3.08.4-1.09-.5-2.08-.53-3.23 0-1.44.66-2.2.47-3.06-.4C3.79 16.17 4.36 9.02 8.93 8.75c1.27.07 2.16.72 2.91.77.98-.2 1.92-.77 2.97-.7 1.26.1 2.2.6 2.82 1.5-2.59 1.55-1.97 4.96.49 5.92-.58 1.52-1.33 3.02-3.07 4.04zM12.03 8.67c-.13-2.21 1.67-4.07 3.82-4.17.28 2.38-2.17 4.42-3.82 4.17z"/>
+                    </svg>
+                    <span class="sr-only">Apple</span>
                 </a>
             </Button>
         </div>

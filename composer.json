@@ -16,6 +16,7 @@
         "laravel/socialite": "*",
         "laravel/tinker": "^3.0",
         "laravel/wayfinder": "^0.1.14",
+        "socialiteproviders/apple": "*",
         "stripe/stripe-php": "*"
     },
     "require-dev": {
