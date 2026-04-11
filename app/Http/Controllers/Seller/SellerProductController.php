@@ -273,6 +273,31 @@ class SellerProductController extends Controller
             ->with('status', 'Product deleted successfully.');
     }
 
+    public function togglePublication(Product $product): RedirectResponse
+    {
+        if ($product->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        if ($product->status === 'published') {
+            $product->update([
+                'status' => 'draft',
+                'published_at' => null,
+            ]);
+
+            return redirect()->route('seller.products.index')
+                ->with('status', 'Product unpublished successfully.');
+        }
+
+        $product->update([
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
+        return redirect()->route('seller.products.index')
+            ->with('status', 'Product published successfully.');
+    }
+
     private function syncCoAuthors(Product $product, array $coAuthors): void
     {
         // Remove existing authors

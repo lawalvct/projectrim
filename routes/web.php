@@ -95,6 +95,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/', [SellerOverviewController::class, 'index'])->name('overview');
         Route::get('profile', [SellerProfileController::class, 'edit'])->name('profile.edit');
         Route::post('profile', [SellerProfileController::class, 'update'])->name('profile.update');
+        Route::patch('products/{product}/toggle-publication', [SellerProductController::class, 'togglePublication'])->name('products.toggle-publication');
         Route::resource('products', SellerProductController::class);
         Route::get('orders', [SellerOrderController::class, 'index'])->name('orders.index');
         Route::get('transactions', [SellerTransactionController::class, 'index'])->name('transactions.index');

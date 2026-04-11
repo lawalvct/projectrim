@@ -48,6 +48,14 @@ function deleteProduct(id: number) {
         router.delete(`/dashboard/seller/products/${id}`);
     }
 }
+
+function togglePublication(id: number, status: string) {
+    const action = status === 'published' ? 'unpublish' : 'publish';
+
+    if (confirm(`Are you sure you want to ${action} this product?`)) {
+        router.patch(`/dashboard/seller/products/${id}/toggle-publication`);
+    }
+}
 </script>
 
 <template>
@@ -109,6 +117,13 @@ function deleteProduct(id: number) {
                                     <Button variant="outline" size="sm">Edit</Button>
                                 </Link>
                                 <Button variant="ghost" size="sm" class="text-destructive" @click="deleteProduct(product.id)">Delete</Button>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    @click="togglePublication(product.id, product.status)"
+                                >
+                                    {{ product.status === 'published' ? 'Unpublish' : 'Publish' }}
+                                </Button>
                             </div>
                         </div>
                     </CardContent>
