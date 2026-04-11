@@ -3,11 +3,36 @@
 @section('title', 'Review Moderation')
 
 @section('content')
-    <div class="mb-4 flex items-center justify-between">
-        <h2 class="text-lg font-semibold">Reviews</h2>
-        <form class="flex gap-2" method="GET">
-            <input type="text" name="search" value="{{ request('search') }}" placeholder="Search reviews…" class="rounded-lg border px-3 py-2 text-sm w-64" />
-            <button class="rounded-lg bg-brand-primary px-4 py-2 text-sm text-white">Search</button>
+    <div class="mb-4 flex flex-col gap-3">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold">Reviews</h2>
+        </div>
+        <form class="flex flex-wrap items-end gap-3 rounded-lg border bg-gray-50 p-4" method="GET">
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">Search</label>
+                <input type="text" name="search" value="{{ request('search') }}" placeholder="Search reviews…" class="rounded-lg border px-3 py-2 text-sm w-56" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">Date From</label>
+                <input type="date" name="date_from" value="{{ request('date_from') }}" class="rounded-lg border px-3 py-2 text-sm" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">Date To</label>
+                <input type="date" name="date_to" value="{{ request('date_to') }}" class="rounded-lg border px-3 py-2 text-sm" />
+            </div>
+            <div>
+                <label class="mb-1 block text-xs font-medium text-gray-500">Sort By</label>
+                <select name="sort" class="rounded-lg border px-3 py-2 text-sm">
+                    <option value="newest" {{ request('sort', 'newest') === 'newest' ? 'selected' : '' }}>Newest First</option>
+                    <option value="oldest" {{ request('sort') === 'oldest' ? 'selected' : '' }}>Oldest First</option>
+                    <option value="reviews_desc" {{ request('sort') === 'reviews_desc' ? 'selected' : '' }}>Most Reviewed Products</option>
+                    <option value="reviews_asc" {{ request('sort') === 'reviews_asc' ? 'selected' : '' }}>Least Reviewed Products</option>
+                </select>
+            </div>
+            <div class="flex gap-2">
+                <button class="rounded-lg bg-brand-primary px-4 py-2 text-sm text-white">Filter</button>
+                <a href="{{ route('admin.reviews.index') }}" class="rounded-lg border px-4 py-2 text-sm text-gray-600 hover:bg-white">Clear</a>
+            </div>
         </form>
     </div>
 
