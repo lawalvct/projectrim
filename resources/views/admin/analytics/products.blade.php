@@ -24,7 +24,7 @@
         </div>
     </div>
 
-    <div class="grid gap-6 lg:grid-cols-3">
+    <div class="grid gap-6 lg:grid-cols-4">
         {{-- Top by Views --}}
         <div class="rounded-xl border bg-white shadow-sm">
             <div class="border-b px-4 py-3">
@@ -35,9 +35,27 @@
                     <div class="flex items-center justify-between px-4 py-2">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400 w-5">{{ $i + 1 }}.</span>
-                            <a href="{{ route('admin.products.show', $product) }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
+                            <a href="{{ route('admin.products.show', $product) }}" title="{{ $product->title }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
                         </div>
                         <span class="text-xs font-medium text-gray-500">{{ number_format($product->views_count) }}</span>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+
+        {{-- Top by Likes --}}
+        <div class="rounded-xl border bg-white shadow-sm">
+            <div class="border-b px-4 py-3">
+                <h3 class="text-sm font-semibold">Top by Likes</h3>
+            </div>
+            <div class="divide-y">
+                @foreach ($topByLikes as $i => $product)
+                    <div class="flex items-center justify-between px-4 py-2">
+                        <div class="flex items-center gap-2">
+                            <span class="text-xs text-gray-400 w-5">{{ $i + 1 }}.</span>
+                            <a href="{{ route('admin.products.show', $product) }}" title="{{ $product->title }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
+                        </div>
+                        <span class="text-xs font-medium text-gray-500">{{ number_format($product->likes_count) }}</span>
                     </div>
                 @endforeach
             </div>
@@ -53,7 +71,7 @@
                     <div class="flex items-center justify-between px-4 py-2">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400 w-5">{{ $i + 1 }}.</span>
-                            <a href="{{ route('admin.products.show', $product) }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
+                            <a href="{{ route('admin.products.show', $product) }}" title="{{ $product->title }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
                         </div>
                         <span class="text-xs font-medium text-gray-500">{{ number_format($product->downloads_count) }}</span>
                     </div>
@@ -71,7 +89,7 @@
                     <div class="flex items-center justify-between px-4 py-2">
                         <div class="flex items-center gap-2">
                             <span class="text-xs text-gray-400 w-5">{{ $i + 1 }}.</span>
-                            <a href="{{ route('admin.products.show', $product) }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
+                            <a href="{{ route('admin.products.show', $product) }}" title="{{ $product->title }}" class="text-sm text-brand-light hover:underline truncate max-w-[160px]">{{ $product->title }}</a>
                         </div>
                         <span class="text-xs font-medium text-gray-500">₦{{ number_format($product->total_revenue, 2) }}</span>
                     </div>

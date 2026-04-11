@@ -21,6 +21,7 @@ class AdminAnalyticsController extends Controller
     public function products()
     {
         $topByViews = Product::orderByDesc('views_count')->take(20)->get(['id', 'title', 'slug', 'views_count', 'downloads_count', 'likes_count']);
+        $topByLikes = Product::orderByDesc('likes_count')->take(20)->get(['id', 'title', 'slug', 'views_count', 'downloads_count', 'likes_count']);
         $topByDownloads = Product::orderByDesc('downloads_count')->take(20)->get(['id', 'title', 'slug', 'views_count', 'downloads_count', 'likes_count']);
         $topByRevenue = Product::select('products.id', 'products.title', 'products.slug')
             ->selectRaw('COALESCE(SUM(revenues.amount_usd), 0) as total_revenue')
@@ -36,7 +37,7 @@ class AdminAnalyticsController extends Controller
             ->orderBy('month')
             ->pluck('count', 'month');
 
-        return view('admin.analytics.products', compact('topByViews', 'topByDownloads', 'topByRevenue', 'monthlyUploads'));
+        return view('admin.analytics.products', compact('topByViews', 'topByLikes', 'topByDownloads', 'topByRevenue', 'monthlyUploads'));
     }
 
     public function users()
