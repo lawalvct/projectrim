@@ -11,7 +11,7 @@ class AdminPayoutController extends Controller
 {
     public function index(Request $request)
     {
-        $query = PayoutRequest::with('user');
+        $query = PayoutRequest::with('user', 'paymentMethod');
 
         if ($status = $request->input('status')) {
             $query->where('status', $status);
@@ -24,7 +24,7 @@ class AdminPayoutController extends Controller
 
     public function show(PayoutRequest $payout)
     {
-        $payout->load('user.sellerProfile');
+        $payout->load('user.sellerProfile.preferredPaymentMethod', 'paymentMethod');
 
         $totalEarned = $payout->user->revenues()->sum('amount_usd');
         $totalPaid = PaymentGiven::where('user_id', $payout->user_id)->sum('amount_usd');
@@ -41,7 +41,7 @@ class AdminPayoutController extends Controller
 
     public function pay(PayoutRequest $payout)
     {
-        $payout->update(['status' => 'paid', 'paid_at' => now()]);
+        $payout->update(['status' => 'paid', 'processed_at' => now()]);
 
         PaymentGiven::create([
             'user_id' => $payout->user_id,

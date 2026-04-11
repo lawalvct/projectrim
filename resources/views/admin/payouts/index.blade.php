@@ -22,7 +22,7 @@
                 <tr>
                     <th class="px-4 py-3">Seller</th>
                     <th class="px-4 py-3">Amount</th>
-                    <th class="px-4 py-3">Method</th>
+                    <th class="px-4 py-3">Payment Method</th>
                     <th class="px-4 py-3">Status</th>
                     <th class="px-4 py-3">Requested</th>
                     <th class="px-4 py-3"></th>
@@ -32,8 +32,8 @@
                 @forelse ($payouts as $payout)
                     <tr class="hover:bg-gray-50">
                         <td class="px-4 py-3 font-medium">{{ $payout->user->name }}</td>
-                        <td class="px-4 py-3">${{ number_format($payout->amount, 2) }}</td>
-                        <td class="px-4 py-3 text-gray-500">{{ ucfirst($payout->method ?? '—') }}</td>
+                        <td class="px-4 py-3">${{ number_format($payout->amount_usd, 2) }}</td>
+                        <td class="px-4 py-3 text-gray-500">{{ $payout->paymentMethod->name ?? '—' }}</td>
                         <td class="px-4 py-3">
                             <span class="rounded-full px-2 py-0.5 text-xs font-medium
                                 {{ $payout->status === 'paid' ? 'bg-green-100 text-green-700' : ($payout->status === 'approved' ? 'bg-blue-100 text-blue-700' : ($payout->status === 'pending' ? 'bg-yellow-100 text-yellow-700' : 'bg-red-100 text-red-700')) }}">
