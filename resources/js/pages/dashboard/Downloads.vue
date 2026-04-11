@@ -34,6 +34,7 @@ defineProps<{
                 price: number;
                 is_paid: boolean;
                 faculty: { id: number; name: string } | null;
+                author_name: string | null;
                 image: string | null;
             } | null;
             created_at: string;
@@ -64,8 +65,9 @@ defineProps<{
                     <div v-if="downloads.data.length">
                         <!-- Table header -->
                         <div class="hidden border-b bg-muted/50 px-6 py-3 md:grid md:grid-cols-12 md:gap-4">
-                            <span class="col-span-5 text-xs font-medium uppercase text-muted-foreground">Product</span>
-                            <span class="col-span-3 text-xs font-medium uppercase text-muted-foreground">Faculty</span>
+                            <span class="col-span-4 text-xs font-medium uppercase text-muted-foreground">Product</span>
+                            <span class="col-span-2 text-xs font-medium uppercase text-muted-foreground">Author</span>
+                            <span class="col-span-2 text-xs font-medium uppercase text-muted-foreground">Faculty</span>
                             <span class="col-span-2 text-xs font-medium uppercase text-muted-foreground">Downloaded</span>
                             <span class="col-span-2 text-xs font-medium uppercase text-muted-foreground text-right">Action</span>
                         </div>
@@ -74,7 +76,7 @@ defineProps<{
                         <div v-for="dl in downloads.data" :key="dl.id" class="border-b last:border-0">
                             <div class="grid items-center gap-4 px-6 py-4 md:grid-cols-12">
                                 <!-- Product -->
-                                <div class="col-span-5 flex items-center gap-3">
+                                <div class="col-span-4 flex items-center gap-3">
                                     <div class="hidden h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-muted md:block">
                                         <img v-if="dl.product?.image" :src="`/storage/${dl.product.image}`" :alt="dl.product?.title" class="h-full w-full object-cover" />
                                         <div v-else class="flex h-full w-full items-center justify-center">
@@ -95,8 +97,14 @@ defineProps<{
                                     </div>
                                 </div>
 
+                                <!-- Author -->
+                                <div class="col-span-2">
+                                    <span v-if="dl.product?.author_name" class="text-sm text-muted-foreground">{{ dl.product.author_name }}</span>
+                                    <span v-else class="text-sm text-muted-foreground">—</span>
+                                </div>
+
                                 <!-- Faculty -->
-                                <div class="col-span-3">
+                                <div class="col-span-2">
                                     <span v-if="dl.product?.faculty" class="text-sm text-muted-foreground">{{ dl.product.faculty.name }}</span>
                                     <span v-else class="text-sm text-muted-foreground">—</span>
                                 </div>
