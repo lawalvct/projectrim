@@ -46,6 +46,7 @@ interface ExistingProduct {
     price: number;
     is_paid: boolean;
     status: string;
+    preview_video: string | null;
     images: Array<{ id: number; path: string }>;
     files: Array<{ id: number; file_name: string; file_size: number; file_type: string }>;
     tags: Array<{ id: number; name: string }>;
@@ -97,6 +98,8 @@ const form = useForm({
     price: props.product?.price ?? 0,
     images: [] as File[],
     project_file: null as File | null,
+    preview_video: null as File | null,
+    remove_video: false,
     remove_images: [] as number[],
     co_authors: (props.product?.authors?.filter((a) => !a.is_primary).map((a) => ({
         user_id: a.user_id,
@@ -289,6 +292,30 @@ function submit(status: 'draft' | 'pending') {
                                     :existing-file="existingFile"
                                 />
                                 <p v-if="form.errors.project_file" class="mt-1 text-xs text-destructive">{{ form.errors.project_file }}</p>
+                            </div>
+                            <div>
+                                <Label>Preview Video</Label>
+                                <p class="mb-2 text-xs text-muted-foreground">Upload a short preview video (MP4, WebM or MOV, max 50 MB).</p>
+                                <div v-if="isEditing && product?.preview_video && !form.remove_video && !form.preview_video" class="mb-2 flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
+                                        <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
+                                    </svg>
+                                    <span class="flex-1 truncate text-sm">Current video uploaded</span>
+                                    <button type="button" class="text-xs text-destructive hover:underline" @click="form.remove_video = true">
+                                        Remove
+                                    </button>
+                                </div>
+                                <div v-if="form.remove_video && !form.preview_video" class="mb-2 rounded-lg border border-dashed border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
+                                    Video will be removed on save.
+                                    <button type="button" class="ml-1 underline" @click="form.remove_video = false">Undo</button>
+                                </div>
+                                <input
+                                    type="file"
+                                    accept="video/mp4,video/webm,video/quicktime"
+                                    class="w-full rounded-md border bg-background px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-primary"
+                                    @change="(e: Event) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { form.preview_video = f; form.remove_video = false; } }"
+                                />
+                                <p v-if="form.errors.preview_video" class="mt-1 text-xs text-destructive">{{ form.errors.preview_video }}</p>
                             </div>
                         </CardContent>
                     </Card>

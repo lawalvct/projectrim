@@ -82,6 +82,13 @@ class SellerProductController extends Controller
                 'status' => $validated['status'] ?? 'draft',
             ]);
 
+            // Handle preview video
+            if ($request->hasFile('preview_video')) {
+                $video = $request->file('preview_video');
+                $videoPath = $video->store('products/videos', 'public');
+                $product->update(['preview_video' => $videoPath]);
+            }
+
             // Handle images
             if ($request->hasFile('images')) {
                 foreach ($request->file('images') as $index => $image) {
@@ -188,6 +195,22 @@ class SellerProductController extends Controller
                 'status' => $validated['status'] ?? $product->status,
             ]);
 
+            // Handle preview video removal
+            if (!empty($validated['remove_video']) && $product->preview_video) {
+                Storage::disk('public')->delete($product->preview_video);
+                $product->update(['preview_video' => null]);
+            }
+
+            // Handle preview video upload
+            if ($request->hasFile('preview_video')) {
+                if ($product->preview_video) {
+                    Storage::disk('public')->delete($product->preview_video);
+                }
+                $video = $request->file('preview_video');
+                $videoPath = $video->store('products/videos', 'public');
+                $product->update(['preview_video' => $videoPath]);
+            }
+
             // Remove specified images
             if (!empty($validated['remove_images'])) {
                 $images = ProductImage::whereIn('id', $validated['remove_images'])
@@ -266,6 +289,9 @@ class SellerProductController extends Controller
         }
         foreach ($product->files as $file) {
             Storage::disk('public')->delete($file->file_path);
+        }
+        if ($product->preview_video) {
+            Storage::disk('public')->delete($product->preview_video);
         }
 
         $product->delete();

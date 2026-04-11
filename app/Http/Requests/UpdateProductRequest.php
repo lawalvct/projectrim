@@ -35,6 +35,8 @@ class UpdateProductRequest extends FormRequest
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
             'project_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:51200'],
+            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:51200'],
+            'remove_video' => ['nullable', 'boolean'],
             'remove_images' => ['nullable', 'array'],
             'remove_images.*' => ['integer', 'exists:product_images,id'],
             'co_authors' => ['nullable', 'array', 'max:10'],
