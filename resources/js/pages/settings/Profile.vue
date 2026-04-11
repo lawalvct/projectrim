@@ -70,14 +70,12 @@ const user = computed(() => page.props.auth.user);
                         <Input
                             id="email"
                             type="email"
-                            class="mt-1 block w-full"
-                            name="email"
+                            class="mt-1 block w-full bg-muted"
                             :default-value="user.email"
-                            required
+                            disabled
                             autocomplete="username"
                             placeholder="Email address"
                         />
-                        <InputError class="mt-2" :message="errors.email" />
                     </div>
 
                     <div v-if="mustVerifyEmail && !user.email_verified_at">
