@@ -7,6 +7,7 @@ use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
 use App\Jobs\SendNewProductNotification;
 use App\Models\Country;
+use App\Models\Download;
 use App\Models\Faculty;
 use App\Models\Product;
 use App\Models\ProductAuthor;
@@ -296,6 +297,26 @@ class SellerProductController extends Controller
 
         return redirect()->route('seller.products.index')
             ->with('status', 'Product published successfully.');
+    }
+
+    public function downloads(Product $product): \Illuminate\Http\JsonResponse
+    {
+        if ($product->user_id !== auth()->id()) {
+            abort(403);
+        }
+
+        $downloads = Download::where('product_id', $product->id)
+            ->with('user:id,name,email')
+            ->latest()
+            ->get()
+            ->map(fn ($dl) => [
+                'id' => $dl->id,
+                'user_name' => $dl->user?->name ?? 'Guest',
+                'user_email' => $dl->user?->email ?? '—',
+                'downloaded_at' => $dl->created_at->format('M d, Y h:i A'),
+            ]);
+
+        return response()->json(['downloads' => $downloads]);
     }
 
     private function syncCoAuthors(Product $product, array $coAuthors): void

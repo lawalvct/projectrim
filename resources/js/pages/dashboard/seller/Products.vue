@@ -4,7 +4,10 @@ import AppLayout from '@/layouts/AppLayout.vue';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
 import type { BreadcrumbItem } from '@/types';
+import { ref } from 'vue';
+import axios from 'axios';
 
 const props = defineProps<{
     products: {
@@ -54,6 +57,27 @@ function togglePublication(id: number, status: string) {
 
     if (confirm(`Are you sure you want to ${action} this product?`)) {
         router.patch(`/dashboard/seller/products/${id}/toggle-publication`);
+    }
+}
+
+// --- Downloads dialog ---
+const downloadsOpen = ref(false);
+const downloadsLoading = ref(false);
+const downloadsProductTitle = ref('');
+const downloadsList = ref<Array<{ id: number; user_name: string; user_email: string; downloaded_at: string }>>([]);
+
+async function showDownloads(productId: number, title: string) {
+    downloadsProductTitle.value = title;
+    downloadsList.value = [];
+    downloadsOpen.value = true;
+    downloadsLoading.value = true;
+    try {
+        const { data } = await axios.get(`/dashboard/seller/products/${productId}/downloads`);
+        downloadsList.value = data.downloads;
+    } catch {
+        downloadsList.value = [];
+    } finally {
+        downloadsLoading.value = false;
     }
 }
 </script>
@@ -110,7 +134,7 @@ function togglePublication(id: number, status: string) {
                             <div class="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                                 <span>{{ product.is_paid ? `$${product.price}` : 'Free' }}</span>
                                 <span>{{ product.views_count }} views</span>
-                                <span>{{ product.downloads_count }} downloads</span>
+                                <span>{{ product.downloads_count }} <button type="button" class="underline hover:text-foreground" @click="showDownloads(product.id, product.title)">downloads</button></span>
                             </div>
                             <div class="mt-2 flex gap-2">
                                 <Link :href="`/dashboard/seller/products/${product.id}/edit`">
@@ -144,5 +168,44 @@ function togglePublication(id: number, status: string) {
                 </div>
             </div>
         </div>
+
+        <!-- Downloads Dialog -->
+        <Dialog v-model:open="downloadsOpen">
+            <DialogContent class="sm:max-w-2xl">
+                <DialogHeader>
+                    <DialogTitle>Downloads</DialogTitle>
+                    <DialogDescription>Users who downloaded "{{ downloadsProductTitle }}"</DialogDescription>
+                </DialogHeader>
+
+                <div v-if="downloadsLoading" class="py-8 text-center text-sm text-muted-foreground">Loading...</div>
+
+                <div v-else-if="!downloadsList.length" class="py-8 text-center text-sm text-muted-foreground">No downloads yet.</div>
+
+                <div v-else class="max-h-80 overflow-y-auto">
+                    <table class="w-full text-sm">
+                        <thead class="border-b text-left text-xs font-medium uppercase text-muted-foreground sticky top-0 bg-background">
+                            <tr>
+                                <th class="px-3 py-2">User</th>
+                                <th class="px-3 py-2">Email</th>
+                                <th class="px-3 py-2">Date</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y">
+                            <tr v-for="dl in downloadsList" :key="dl.id">
+                                <td class="px-3 py-2 font-medium">{{ dl.user_name }}</td>
+                                <td class="px-3 py-2 text-muted-foreground">{{ dl.user_email }}</td>
+                                <td class="px-3 py-2 text-muted-foreground text-xs">{{ dl.downloaded_at }}</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <DialogFooter>
+                    <DialogClose as-child>
+                        <Button variant="outline" size="sm">Close</Button>
+                    </DialogClose>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
     </AppLayout>
 </template>
