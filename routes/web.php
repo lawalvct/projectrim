@@ -16,6 +16,7 @@ use App\Http\Controllers\LikeController;
 use App\Http\Controllers\PageController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProductMessageController;
+use App\Http\Controllers\ProductReportController;
 use App\Http\Controllers\ReviewController;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seller\PaymentHistoryController;
@@ -70,6 +71,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::post('/products/{product}/like', [LikeController::class, 'toggle'])->name('products.like');
     Route::post('/products/{product}/reviews', [ReviewController::class, 'store'])->name('products.reviews.store');
     Route::delete('/products/{product}/reviews', [ReviewController::class, 'destroy'])->name('products.reviews.destroy');
+    Route::post('/products/{product}/report', [ProductReportController::class, 'store'])->name('products.report');
 
     // Checkout
     Route::get('checkout', [CheckoutController::class, 'index'])->name('checkout.index');

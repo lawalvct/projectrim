@@ -8,6 +8,7 @@ import { Separator } from '@/components/ui/separator';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter, DialogClose } from '@/components/ui/dialog';
 import { ref, computed } from 'vue';
 import axios from 'axios';
 
@@ -88,6 +89,7 @@ const props = defineProps<{
     }>;
     isLiked: boolean;
     userReview: { id: number; rating: number; comment: string } | null;
+    hasReported: boolean;
 }>();
 
 const page = usePage();
@@ -236,6 +238,39 @@ async function sendMessage() {
         messageError.value = err.response?.data?.message || 'Failed to send message.';
     } finally {
         sendingMessage.value = false;
+    }
+}
+
+// --- Report ---
+const reportOpen = ref(false);
+const reportReason = ref('');
+const submittingReport = ref(false);
+const reportSuccess = ref(false);
+const reportError = ref('');
+const alreadyReported = ref(props.hasReported);
+
+async function submitReport() {
+    if (!auth.value?.user) {
+        router.visit('/login');
+        return;
+    }
+    if (!reportReason.value.trim()) {
+        reportError.value = 'Please describe your complaint.';
+        return;
+    }
+    submittingReport.value = true;
+    reportError.value = '';
+    try {
+        await axios.post(`/products/${props.product.id}/report`, {
+            reason: reportReason.value,
+        });
+        reportSuccess.value = true;
+        reportReason.value = '';
+        alreadyReported.value = true;
+    } catch (err: any) {
+        reportError.value = err.response?.data?.message || 'Failed to submit report.';
+    } finally {
+        submittingReport.value = false;
     }
 }
 </script>
@@ -492,6 +527,54 @@ async function sendMessage() {
                                 <span :class="liked ? 'text-red-500' : 'text-muted-foreground'">{{ liked ? '❤' : '♡' }}</span>
                                 {{ liked ? 'Liked' : 'Like this project' }}
                             </Button>
+
+                            <Button
+                                variant="outline"
+                                class="w-full gap-2 mt-2 text-destructive hover:text-destructive"
+                                :disabled="alreadyReported"
+                                @click="auth?.user ? (reportOpen = true, reportSuccess = false, reportError = '') : router.visit('/login')"
+                            >
+                                <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z" /></svg>
+                                {{ alreadyReported ? 'Already Reported' : 'Report this project' }}
+                            </Button>
+
+                            <!-- Report Dialog -->
+                            <Dialog v-model:open="reportOpen">
+                                <DialogContent class="sm:max-w-md">
+                                    <DialogHeader>
+                                        <DialogTitle>Report Project</DialogTitle>
+                                        <DialogDescription>Describe your complaint about this project. Your name and email will be included automatically.</DialogDescription>
+                                    </DialogHeader>
+
+                                    <div v-if="reportSuccess" class="rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
+                                        Report submitted successfully. Our team will review it shortly.
+                                    </div>
+
+                                    <template v-else>
+                                        <div v-if="reportError" class="rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ reportError }}</div>
+                                        <div class="space-y-3">
+                                            <div class="text-sm text-muted-foreground space-y-1">
+                                                <p><strong>Product:</strong> {{ product.title }}</p>
+                                                <p><strong>Your Name:</strong> {{ auth?.user?.name }}</p>
+                                                <p><strong>Your Email:</strong> {{ auth?.user?.email }}</p>
+                                            </div>
+                                            <div>
+                                                <Label for="report-reason">Complaint / Reason</Label>
+                                                <Textarea id="report-reason" v-model="reportReason" rows="4" placeholder="Describe your complaint..." class="mt-1" />
+                                            </div>
+                                        </div>
+                                    </template>
+
+                                    <DialogFooter>
+                                        <DialogClose as-child>
+                                            <Button variant="outline" size="sm">Close</Button>
+                                        </DialogClose>
+                                        <Button v-if="!reportSuccess" size="sm" :disabled="submittingReport" @click="submitReport">
+                                            {{ submittingReport ? 'Submitting...' : 'Submit Report' }}
+                                        </Button>
+                                    </DialogFooter>
+                                </DialogContent>
+                            </Dialog>
                         </CardContent>
                     </Card>
 

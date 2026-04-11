@@ -6,6 +6,7 @@ use App\Models\Department;
 use App\Models\Faculty;
 use App\Models\Like;
 use App\Models\Product;
+use App\Models\Report;
 use App\Models\Tag;
 use App\Services\RevenueService;
 use Illuminate\Http\Request;
@@ -102,6 +103,7 @@ class ProductController extends Controller
         // Check if current user has liked this product
         $isLiked = false;
         $userReview = null;
+        $hasReported = false;
         if ($user = $request->user()) {
             $isLiked = Like::where('product_id', $product->id)
                 ->where('user_id', $user->id)
@@ -109,6 +111,9 @@ class ProductController extends Controller
             $userReview = $product->reviews()
                 ->where('user_id', $user->id)
                 ->first(['id', 'rating', 'comment']);
+            $hasReported = Report::where('product_id', $product->id)
+                ->where('user_id', $user->id)
+                ->exists();
         }
 
         $relatedProducts = Product::published()
@@ -126,6 +131,7 @@ class ProductController extends Controller
             'relatedProducts' => $relatedProducts,
             'isLiked' => $isLiked,
             'userReview' => $userReview,
+            'hasReported' => $hasReported,
         ]);
     }
 }

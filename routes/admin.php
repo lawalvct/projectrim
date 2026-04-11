@@ -12,6 +12,7 @@ use App\Http\Controllers\Admin\AdminPageController;
 use App\Http\Controllers\Admin\AdminPaymentMethodController;
 use App\Http\Controllers\Admin\AdminPayoutController;
 use App\Http\Controllers\Admin\AdminProductController;
+use App\Http\Controllers\Admin\AdminReportController;
 use App\Http\Controllers\Admin\AdminReviewController;
 use App\Http\Controllers\Admin\AdminSellerApplicationController;
 use App\Http\Controllers\Admin\AdminSettingController;
@@ -55,6 +56,13 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     // Reviews
     Route::get('reviews', [AdminReviewController::class, 'index'])->name('reviews.index');
     Route::delete('reviews/{review}', [AdminReviewController::class, 'destroy'])->name('reviews.destroy');
+
+    // Reports
+    Route::get('reports', [AdminReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/{report}', [AdminReportController::class, 'show'])->name('reports.show');
+    Route::post('reports/{report}/reviewed', [AdminReportController::class, 'reviewed'])->name('reports.reviewed');
+    Route::post('reports/{report}/dismiss', [AdminReportController::class, 'dismiss'])->name('reports.dismiss');
+    Route::delete('reports/{report}', [AdminReportController::class, 'destroy'])->name('reports.destroy');
 
     // Newsletter
     Route::get('newsletter/subscribers', [AdminNewsletterController::class, 'subscribers'])->name('newsletter.subscribers');
