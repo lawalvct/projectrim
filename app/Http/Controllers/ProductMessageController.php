@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\NewMessageNotification;
 use App\Models\Message;
 use App\Models\MessageRecipient;
 use App\Models\Product;
+use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Mail;
 
 class ProductMessageController extends Controller
 {
@@ -48,6 +51,7 @@ class ProductMessageController extends Controller
 
         // Send to all authors (or product owner if no authors)
         $authors = $product->authors()->get();
+        $recipientUserIds = [];
 
         if ($authors->isEmpty()) {
             // Send to product owner
@@ -55,6 +59,7 @@ class ProductMessageController extends Controller
                 'message_id' => $message->id,
                 'user_id' => $product->user_id,
             ]);
+            $recipientUserIds[] = $product->user_id;
         } else {
             // Send to all authors/co-authors
             foreach ($authors as $author) {
@@ -62,7 +67,14 @@ class ProductMessageController extends Controller
                     'message_id' => $message->id,
                     'user_id' => $author->user_id,
                 ]);
+                $recipientUserIds[] = $author->user_id;
             }
+        }
+
+        // Send email notification to each recipient
+        $recipients = User::whereIn('id', $recipientUserIds)->get();
+        foreach ($recipients as $recipient) {
+            Mail::to($recipient->email)->queue(new NewMessageNotification($message, $recipient));
         }
 
         return response()->json([

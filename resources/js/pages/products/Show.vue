@@ -419,7 +419,7 @@ async function sendMessage() {
                                         </div>
                                         <div>
                                             <Label for="msg-email">Your Email</Label>
-                                            <Input id="msg-email" type="email" v-model="msgForm.sender_email" required />
+                                            <Input id="msg-email" type="email" v-model="msgForm.sender_email" required readonly />
                                         </div>
                                     </div>
                                     <div>
