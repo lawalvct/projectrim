@@ -44,19 +44,25 @@ const showAdvanced = ref(
 );
 
 const degreeOptions = [
+    'OND',
+    'HND',
+    'Associate Degree',
     "Bachelor's Degree",
-    'Higher Diploma',
-    'Master Degree',
-    'Ordinary Diploma',
+    "Master's Degree",
     'Doctorate Degree',
-    'Personal',
-    'Professional',
-    'Post Graduate Degree',
 ];
 
 const documentTypes = [
-    'Project', 'Thesis', 'Dissertation', 'Journal Article', 'Conference Paper',
-    'Book', 'Book Chapter', 'Report', 'Case Study', 'Other',
+    'Article',
+    'Case Study',
+    'Dissertation',
+    'Opinion',
+    'Research Project',
+    'Report',
+    'Seminar',
+    'Thesis',
+    'Tutorial',
+    'White Paper',
 ];
 
 const sortOptions = [
@@ -148,7 +154,6 @@ function clearAll() {
                                 <SelectValue placeholder="All Faculties" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Faculties</SelectItem>
                                 <SelectItem v-for="f in faculties" :key="f.id" :value="String(f.id)">
                                     {{ f.name }}
                                 </SelectItem>
@@ -162,7 +167,6 @@ function clearAll() {
                                 <SelectValue :placeholder="departments.length ? 'Select Department' : 'Select faculty first'" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Departments</SelectItem>
                                 <SelectItem v-for="d in departments" :key="d.id" :value="String(d.id)">
                                     {{ d.name }}
                                 </SelectItem>
@@ -214,7 +218,6 @@ function clearAll() {
                                 <SelectValue placeholder="All Types" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Types</SelectItem>
                                 <SelectItem v-for="dt in documentTypes" :key="dt" :value="dt">
                                     {{ dt }}
                                 </SelectItem>
@@ -228,7 +231,6 @@ function clearAll() {
                                 <SelectValue placeholder="All Classes" />
                             </SelectTrigger>
                             <SelectContent>
-                                <SelectItem value="">All Classes</SelectItem>
                                 <SelectItem v-for="d in degreeOptions" :key="d" :value="d">
                                     {{ d }}
                                 </SelectItem>

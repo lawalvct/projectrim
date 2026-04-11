@@ -140,15 +140,26 @@ function handleRemoveExistingImage(id: number) {
     form.remove_images.push(id);
 }
 
+const documentTypeOptions = [
+    'Article',
+    'Case Study',
+    'Dissertation',
+    'Opinion',
+    'Research Project',
+    'Report',
+    'Seminar',
+    'Thesis',
+    'Tutorial',
+    'White Paper',
+];
+
 const degreeOptions = [
-    'First Class',
-    'Second Class Upper',
-    'Second Class Lower',
-    'Third Class',
-    'Pass',
-    'Distinction',
-    'Credit',
-    'Merit',
+    'OND',
+    'HND',
+    'Associate Degree',
+    "Bachelor's Degree",
+    "Master's Degree",
+    'Doctorate Degree',
 ];
 
 function submit(status: 'draft' | 'pending') {
@@ -338,7 +349,16 @@ function submit(status: 'draft' | 'pending') {
                             <div class="grid gap-4 sm:grid-cols-2">
                                 <div>
                                     <Label>Document Type</Label>
-                                    <Input v-model="form.document_type" placeholder="e.g. Thesis, Dissertation, Project" />
+                                    <Select v-model="form.document_type">
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Select document type" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem v-for="dt in documentTypeOptions" :key="dt" :value="dt">
+                                                {{ dt }}
+                                            </SelectItem>
+                                        </SelectContent>
+                                    </Select>
                                 </div>
                                 <div>
                                     <Label>Class of Degree</Label>

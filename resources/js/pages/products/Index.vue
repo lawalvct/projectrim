@@ -35,8 +35,16 @@ const selectedDocType = ref(props.filters.document_type || '');
 const departments = ref<Department[]>([]);
 
 const documentTypes = [
-    'Project', 'Thesis', 'Dissertation', 'Journal Article', 'Conference Paper',
-    'Book', 'Book Chapter', 'Report', 'Case Study', 'Other',
+    'Article',
+    'Case Study',
+    'Dissertation',
+    'Opinion',
+    'Research Project',
+    'Report',
+    'Seminar',
+    'Thesis',
+    'Tutorial',
+    'White Paper',
 ];
 
 const sortOptions = [
@@ -107,7 +115,6 @@ watch([selectedFaculty, selectedDepartment, selectedSort, selectedPrice, selecte
                         <SelectValue placeholder="All Faculties" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Faculties</SelectItem>
                         <SelectItem v-for="f in faculties" :key="f.id" :value="String(f.id)">
                             {{ f.name }} ({{ f.products_count }})
                         </SelectItem>
@@ -119,7 +126,6 @@ watch([selectedFaculty, selectedDepartment, selectedSort, selectedPrice, selecte
                         <SelectValue :placeholder="selectedFaculty ? 'All Departments' : 'Select Faculty first'" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Departments</SelectItem>
                         <SelectItem v-for="d in departments" :key="d.id" :value="String(d.id)">
                             {{ d.name }}
                         </SelectItem>
@@ -131,7 +137,6 @@ watch([selectedFaculty, selectedDepartment, selectedSort, selectedPrice, selecte
                         <SelectValue placeholder="All Types" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Types</SelectItem>
                         <SelectItem v-for="dt in documentTypes" :key="dt" :value="dt">
                             {{ dt }}
                         </SelectItem>
@@ -143,7 +148,6 @@ watch([selectedFaculty, selectedDepartment, selectedSort, selectedPrice, selecte
                         <SelectValue placeholder="All Prices" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="">All Prices</SelectItem>
                         <SelectItem value="free">Free</SelectItem>
                         <SelectItem value="paid">Paid</SelectItem>
                     </SelectContent>
