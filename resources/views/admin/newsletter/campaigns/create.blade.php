@@ -18,7 +18,7 @@
 
                 <div class="mb-4">
                     <label class="mb-1 block text-sm font-medium">Body</label>
-                    <textarea name="body" rows="10" class="w-full rounded-lg border px-3 py-2 text-sm" required>{{ old('body') }}</textarea>
+                    <textarea id="body-editor" name="body" rows="10" class="w-full rounded-lg border px-3 py-2 text-sm">{{ old('body') }}</textarea>
                     @error('body') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
@@ -42,3 +42,18 @@
         </div>
     </div>
 @endsection
+
+@push('scripts')
+    <script src="https://cdn.tiny.cloud/1/{{ config('services.tinymce.api_key', 'no-api-key') }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
+    <script>
+        tinymce.init({
+            selector: '#body-editor',
+            height: 300,
+            menubar: false,
+            plugins: 'lists link autolink',
+            toolbar: 'undo redo | bold italic underline strikethrough | bullist numlist | link | removeformat',
+            branding: false,
+            promotion: false,
+        });
+    </script>
+@endpush

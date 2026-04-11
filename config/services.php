@@ -59,6 +59,10 @@ return [
         'redirect' => env('APPLE_REDIRECT_URI', '/auth/social/apple/callback'),
     ],
 
+    'tinymce' => [
+        'api_key' => env('TINYMCE_API_KEY', 'no-api-key'),
+    ],
+
     'stripe' => [
         'key' => env('STRIPE_KEY'),
         'secret' => env('STRIPE_SECRET'),
