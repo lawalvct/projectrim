@@ -52,14 +52,10 @@ const removeItem = (itemId: number) => {
                             <Link :href="`/products/${item.product.slug}`" class="shrink-0">
                                 <div class="h-20 w-20 overflow-hidden rounded-lg bg-muted">
                                     <img
-                                        v-if="item.product.image"
-                                        :src="`/storage/${item.product.image}`"
+                                        :src="item.product.image ? `/storage/${item.product.image}` : '/storage/products/images/projectrim_cover_page.png'"
                                         :alt="item.product.title"
                                         class="h-full w-full object-cover"
                                     />
-                                    <div v-else class="flex h-full items-center justify-center text-muted-foreground">
-                                        <ShoppingCart class="h-6 w-6" />
-                                    </div>
                                 </div>
                             </Link>
 

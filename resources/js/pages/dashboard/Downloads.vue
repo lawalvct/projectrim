@@ -78,10 +78,7 @@ defineProps<{
                                 <!-- Product -->
                                 <div class="col-span-4 flex items-center gap-3">
                                     <div class="hidden h-12 w-12 flex-shrink-0 overflow-hidden rounded-lg bg-muted md:block">
-                                        <img v-if="dl.product?.image" :src="`/storage/${dl.product.image}`" :alt="dl.product?.title" class="h-full w-full object-cover" />
-                                        <div v-else class="flex h-full w-full items-center justify-center">
-                                            <Package class="h-5 w-5 text-muted-foreground/40" />
-                                        </div>
+                                        <img :src="dl.product?.image ? `/storage/${dl.product.image}` : '/storage/products/images/projectrim_cover_page.png'" :alt="dl.product?.title" class="h-full w-full object-cover" />
                                     </div>
                                     <div class="min-w-0">
                                         <Link v-if="dl.product" :href="`/products/${dl.product.slug}`" class="text-sm font-medium hover:text-primary line-clamp-1">

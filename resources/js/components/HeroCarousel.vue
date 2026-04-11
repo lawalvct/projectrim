@@ -171,9 +171,8 @@ function stripHtml(html: string | null): string {
                     <template v-else-if="item.type === 'product'">
                         <div class="relative flex min-h-[420px] items-center px-4 py-16 text-white lg:min-h-[480px]">
                             <div
-                                v-if="item.data.images?.length"
                                 class="absolute inset-0 bg-cover bg-center opacity-20"
-                                :style="{ backgroundImage: `url(/storage/${item.data.images[0].path})` }"
+                                :style="{ backgroundImage: item.data.images?.length ? `url(/storage/${item.data.images[0].path})` : `url(/storage/products/images/projectrim_cover_page.png)` }"
                             />
                             <div class="relative mx-auto grid max-w-6xl gap-8 lg:grid-cols-2">
                                 <div class="flex flex-col justify-center">
@@ -195,9 +194,9 @@ function stripHtml(html: string | null): string {
                                         </Link>
                                     </div>
                                 </div>
-                                <div v-if="item.data.images?.length" class="hidden overflow-hidden rounded-lg lg:block">
+                                <div class="hidden overflow-hidden rounded-lg lg:block">
                                     <img
-                                        :src="`/storage/${item.data.images[0].path}`"
+                                        :src="item.data.images?.length ? `/storage/${item.data.images[0].path}` : '/storage/products/images/projectrim_cover_page.png'"
                                         :alt="item.data.title"
                                         class="h-full max-h-[320px] w-full object-cover"
                                     />

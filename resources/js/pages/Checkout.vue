@@ -132,13 +132,9 @@ function submitCheckout() {
                                 <div v-for="item in items" :key="item.id" class="flex items-center gap-3">
                                     <div class="h-10 w-10 shrink-0 overflow-hidden rounded bg-muted">
                                         <img
-                                            v-if="item.product.image"
-                                            :src="`/storage/${item.product.image}`"
+                                            :src="item.product.image ? `/storage/${item.product.image}` : '/storage/products/images/projectrim_cover_page.png'"
                                             class="h-full w-full object-cover"
                                         />
-                                        <div v-else class="flex h-full items-center justify-center">
-                                            <ShoppingCart class="h-3 w-3 text-muted-foreground" />
-                                        </div>
                                     </div>
                                     <div class="min-w-0 flex-1">
                                         <p class="text-xs font-medium line-clamp-1">{{ item.product.title }}</p>

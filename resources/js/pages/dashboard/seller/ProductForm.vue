@@ -210,6 +210,14 @@ function submit(status: 'draft' | 'pending') {
             </div>
 
             <form @submit.prevent>
+                <!-- Validation Errors -->
+                <div v-if="Object.keys(form.errors).length" class="mb-6 rounded-lg border border-destructive/50 bg-destructive/5 p-4">
+                    <p class="mb-2 text-sm font-medium text-destructive">Please fix the following errors:</p>
+                    <ul class="list-inside list-disc space-y-1 text-sm text-destructive">
+                        <li v-for="(error, key) in form.errors" :key="key">{{ error }}</li>
+                    </ul>
+                </div>
+
                 <!-- TAB 1: General -->
                 <div v-show="activeTab === 'general'" class="space-y-6">
                     <!-- Name Section -->
@@ -262,13 +270,17 @@ function submit(status: 'draft' | 'pending') {
                         </CardHeader>
                         <CardContent class="space-y-4">
                             <div>
-                                <Label>Images</Label>
+                                <Label>Cover Images</Label>
                                 <ImageUpload
                                     v-model="form.images"
                                     :existing-images="existingImages"
                                     :max="10"
                                     @remove-existing="handleRemoveExistingImage"
                                 />
+                                <p class="mt-1 text-xs text-muted-foreground">Recommended size: <strong>1200 × 750 px</strong> (16:10 ratio). JPEG or WebP, max 500 KB per image.</p>
+                                <p v-if="Object.keys(form.errors).some(k => k.startsWith('images'))" class="mt-1 text-xs text-destructive">
+                                    {{ Object.entries(form.errors).filter(([k]) => k.startsWith('images')).map(([, v]) => v).join(', ') }}
+                                </p>
                             </div>
                             <div>
                                 <Label>Project File</Label>
@@ -276,6 +288,7 @@ function submit(status: 'draft' | 'pending') {
                                     v-model="form.project_file"
                                     :existing-file="existingFile"
                                 />
+                                <p v-if="form.errors.project_file" class="mt-1 text-xs text-destructive">{{ form.errors.project_file }}</p>
                             </div>
                         </CardContent>
                     </Card>

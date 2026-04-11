@@ -295,10 +295,10 @@ async function submitReport() {
                 <!-- Main Content -->
                 <div class="lg:col-span-2 space-y-6">
                     <!-- Image Gallery -->
-                    <div v-if="product.images.length">
+                    <div>
                         <div class="aspect-[16/10] overflow-hidden rounded-lg bg-muted">
                             <img
-                                :src="`/storage/${product.images[activeImage].path}`"
+                                :src="product.images.length ? `/storage/${product.images[activeImage].path}` : '/storage/products/images/projectrim_cover_page.png'"
                                 :alt="product.title"
                                 class="h-full w-full object-cover"
                             />
@@ -700,8 +700,7 @@ async function submitReport() {
                         <Card class="h-full overflow-hidden transition-shadow hover:shadow-lg">
                             <div class="aspect-[4/3] bg-muted">
                                 <img
-                                    v-if="rp.images?.length"
-                                    :src="`/storage/${rp.images[0].path}`"
+                                    :src="rp.images?.length ? `/storage/${rp.images[0].path}` : '/storage/products/images/projectrim_cover_page.png'"
                                     :alt="rp.title"
                                     class="h-full w-full object-cover transition-transform group-hover:scale-105"
                                 />

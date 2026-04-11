@@ -115,8 +115,7 @@ async function showDownloads(productId: number, title: string) {
                         <!-- Thumbnail -->
                         <div class="h-20 w-20 flex-shrink-0 rounded-lg bg-muted">
                             <img
-                                v-if="product.images?.length"
-                                :src="`/storage/${product.images[0].path}`"
+                                :src="product.images?.length ? `/storage/${product.images[0].path}` : '/storage/products/images/projectrim_cover_page.png'"
                                 :alt="product.title"
                                 class="h-full w-full rounded-lg object-cover"
                             />
