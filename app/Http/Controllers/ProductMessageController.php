@@ -15,6 +15,16 @@ class ProductMessageController extends Controller
 {
     public function store(Request $request, Product $product): JsonResponse
     {
+        if (! $request->user()) {
+            $request->session()->put('url.intended', route('products.show', $product->slug));
+            $request->session()->flash('message', 'Please log in to send a message.');
+
+            return response()->json([
+                'redirect' => route('login'),
+                'message' => 'Please log in to send a message.',
+            ], 401);
+        }
+
         $request->validate([
             'sender_name' => 'required|string|max:255',
             'sender_email' => 'required|email|max:255',

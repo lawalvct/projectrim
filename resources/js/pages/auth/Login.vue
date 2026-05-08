@@ -1,14 +1,16 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, usePage } from '@inertiajs/vue3';
+import { computed, onMounted, ref } from 'vue';
+
 import InputError from '@/components/InputError.vue';
 import PasswordInput from '@/components/PasswordInput.vue';
+import SocialLoginButtons from '@/components/SocialLoginButtons.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Spinner } from '@/components/ui/spinner';
-import SocialLoginButtons from '@/components/SocialLoginButtons.vue';
 import AuthBase from '@/layouts/AuthLayout.vue';
 import { register } from '@/routes';
 import { store } from '@/routes/login';
@@ -19,6 +21,19 @@ defineProps<{
     canResetPassword: boolean;
     canRegister: boolean;
 }>();
+
+const page = usePage();
+const flashMessage = computed(() => (page.props.flash as { message?: string } | undefined)?.message);
+const authMessage = ref<string | null>(null);
+
+onMounted(() => {
+    const storedMessage = sessionStorage.getItem('authMessage');
+
+    if (storedMessage) {
+        authMessage.value = storedMessage;
+        sessionStorage.removeItem('authMessage');
+    }
+});
 </script>
 
 <template>
@@ -27,6 +42,14 @@ defineProps<{
         description="Enter your email and password below to log in"
     >
         <Head title="Log in" />
+
+        <div
+            v-if="authMessage || flashMessage"
+            class="mb-4 text-center text-sm font-medium text-amber-600"
+        >
+            {{ authMessage || flashMessage }}
+
+        </div>
 
         <div
             v-if="status"

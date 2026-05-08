@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import PostLoginModal from '@/components/PostLoginModal.vue';
 import AppLayout from '@/layouts/app/AppSidebarLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 
@@ -14,5 +15,6 @@ withDefaults(defineProps<Props>(), {
 <template>
     <AppLayout :breadcrumbs="breadcrumbs">
         <slot />
+        <PostLoginModal />
     </AppLayout>
 </template>

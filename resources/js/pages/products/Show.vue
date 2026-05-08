@@ -263,6 +263,16 @@ async function sendMessage() {
         msgForm.value.subject = '';
         msgForm.value.body = '';
     } catch (err: any) {
+        if (err.response?.status === 401 && err.response?.data?.redirect) {
+            router.visit(err.response.data.redirect, {
+                method: 'get',
+                data: {},
+                onBefore: () => {
+                    sessionStorage.setItem('authMessage', err.response.data.message);
+                }
+            });
+            return;
+        }
         messageError.value = err.response?.data?.message || 'Failed to send message.';
     } finally {
         sendingMessage.value = false;

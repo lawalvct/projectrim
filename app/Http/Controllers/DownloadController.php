@@ -24,13 +24,14 @@ class DownloadController extends Controller
         $user = $request->user();
         $ip = $request->ip();
 
-        // For paid products, user must be authenticated and have purchased
-        if ($product->is_paid) {
-            if (! $user) {
-                return redirect()->route('products.show', $product->slug)
-                    ->with('flash', ['error' => 'Please log in to download this product.']);
-            }
+        // Auth is enforced at the route level, but guard defensively.
+        if (! $user) {
+            return redirect()->guest(route('login'))
+                ->with('flash', ['error' => 'Please log in to download this product.']);
+        }
 
+        // For paid products, user must have purchased
+        if ($product->is_paid) {
             $hasAccess = Download::where('user_id', $user->id)
                 ->where('product_id', $product->id)
                 ->exists();
@@ -41,6 +42,17 @@ class DownloadController extends Controller
             }
         }
 
+        // One download per user per product per day
+        $alreadyDownloadedToday = Download::where('user_id', $user->id)
+            ->where('product_id', $product->id)
+            ->whereDate('created_at', now()->toDateString())
+            ->exists();
+
+        if ($alreadyDownloadedToday) {
+            return redirect()->route('products.show', $product->slug)
+                ->with('flash', ['error' => 'You have already downloaded this item today. Please try again tomorrow.']);
+        }
+
         // Get the first file
         $file = $product->files()->first();
 
@@ -49,14 +61,13 @@ class DownloadController extends Controller
                 ->with('flash', ['error' => 'No file available for download.']);
         }
 
-        // Record download entry (for free products, create if not exists)
-        if (! $product->is_paid) {
-            Download::firstOrCreate([
-                'user_id' => $user?->id,
-                'product_id' => $product->id,
-                'ip_address' => $ip,
-            ]);
-        }
+        // Record download entry for free products (paid already has one from purchase,
+        // but we still create a daily record to enforce the once-per-day rule)
+        Download::create([
+            'user_id' => $user->id,
+            'product_id' => $product->id,
+            'ip_address' => $ip,
+        ]);
 
         // Increment downloads count
         $product->increment('downloads_count');

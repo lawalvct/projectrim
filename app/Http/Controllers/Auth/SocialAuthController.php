@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Auth;
 use App\Http\Controllers\Controller;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Laravel\Socialite\Facades\Socialite;
 
@@ -24,7 +25,7 @@ class SocialAuthController extends Controller
         return Socialite::driver($driver)->redirect();
     }
 
-    public function callback(string $provider): RedirectResponse
+    public function callback(Request $request, string $provider): RedirectResponse
     {
         abort_unless(in_array($provider, self::PROVIDERS), 404);
 
@@ -46,7 +47,7 @@ class SocialAuthController extends Controller
         if ($user) {
             Auth::login($user, remember: true);
 
-            return redirect()->intended('/dashboard');
+            return $this->redirectAfterLogin($request);
         }
 
         // Check if a user with this email already exists (link accounts)
@@ -61,7 +62,7 @@ class SocialAuthController extends Controller
 
             Auth::login($existingUser, remember: true);
 
-            return redirect()->intended('/dashboard');
+            return $this->redirectAfterLogin($request);
         }
 
         // Create new user
@@ -76,6 +77,32 @@ class SocialAuthController extends Controller
 
         Auth::login($user, remember: true);
 
-        return redirect('/dashboard');
+        return $this->redirectAfterLogin($request);
+    }
+
+    private function redirectAfterLogin(Request $request): RedirectResponse
+    {
+        $user = $request->user();
+        $home = $user?->isAdmin() ? '/admin' : '/dashboard';
+
+        $intended = $request->session()->pull('url.intended');
+
+        if ($intended) {
+            $path = parse_url($intended, PHP_URL_PATH) ?? $intended;
+            $isHome = $path === $home
+                || str_starts_with($path, '/dashboard')
+                || str_starts_with($path, '/admin')
+                || $path === '/';
+
+            if (! $isHome) {
+                $request->session()->flash('login_return_url', $intended);
+
+                return redirect($home);
+            }
+
+            return redirect($intended);
+        }
+
+        return redirect($home);
     }
 }

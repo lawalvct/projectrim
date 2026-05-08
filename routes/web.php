@@ -52,9 +52,11 @@ Route::get('/pages/{slug}', [PageController::class, 'show'])->name('page.show');
 // Product messages (public - no auth required)
 Route::post('/products/{product}/messages', [ProductMessageController::class, 'store'])->name('products.messages.store');
 
-// Downloads (public for free products, auth-checked internally for paid)
-Route::get('/download/{product}', [DownloadController::class, 'download'])->name('download.product');
-Route::get('/download/{product}/file', [DownloadController::class, 'file'])->name('download.file');
+// Downloads (auth required - users must log in to download anything)
+Route::middleware('auth')->group(function () {
+    Route::get('/download/{product}', [DownloadController::class, 'download'])->name('download.product');
+    Route::get('/download/{product}/file', [DownloadController::class, 'file'])->name('download.file');
+});
 
 // Social authentication
 Route::get('/auth/social/{provider}/redirect', [SocialAuthController::class, 'redirect'])->name('social.redirect');
