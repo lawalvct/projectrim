@@ -135,14 +135,40 @@ const togglingLike = ref(false);
 // --- Share ---
 const shareUrl = computed(() => typeof window !== 'undefined' ? `${window.location.origin}/products/${props.product.slug}` : '');
 const shareText = computed(() => `Check out "${props.product.title}" on ${settings.value.site_name || 'ProjectRim'}`);
+const shareMessage = computed(() => `${shareText.value} ${shareUrl.value}`);
 const copiedLink = ref(false);
 
-async function copyShareLink() {
+async function copyShareMessage(showFeedback = true) {
     try {
-        await navigator.clipboard.writeText(shareText.value + ' ' + shareUrl.value);
-        copiedLink.value = true;
-        setTimeout(() => { copiedLink.value = false; }, 2000);
+        await navigator.clipboard.writeText(shareMessage.value);
+
+        if (showFeedback) {
+            copiedLink.value = true;
+            setTimeout(() => {
+                copiedLink.value = false;
+            }, 2000);
+        }
     } catch {}
+}
+
+function copyShareLink() {
+    void copyShareMessage();
+}
+
+function openSocialShare(platformUrl: string) {
+    if (typeof window !== 'undefined') {
+        window.open(platformUrl, '_blank', 'noopener,noreferrer');
+    }
+
+    void copyShareMessage(false);
+}
+
+function shareOnInstagram() {
+    openSocialShare('https://www.instagram.com/direct/inbox/');
+}
+
+function shareOnTikTok() {
+    openSocialShare('https://www.tiktok.com/upload');
 }
 
 // --- Smart Link ---
@@ -616,9 +642,9 @@ async function submitReport() {
                     <Card>
                         <CardContent class="p-6">
                             <h3 class="mb-3 font-semibold">Share this project</h3>
-                            <div class="flex gap-2">
+                            <div class="flex flex-wrap gap-2">
                                 <a
-                                    :href="`https://wa.me/?text=${encodeURIComponent(shareText + ' ' + shareUrl)}`"
+                                    :href="`https://wa.me/?text=${encodeURIComponent(shareMessage)}`"
                                     target="_blank"
                                     rel="noopener noreferrer"
                                     class="flex h-10 w-10 items-center justify-center rounded-full bg-[#25D366] text-white transition-opacity hover:opacity-80"
@@ -662,6 +688,24 @@ async function submitReport() {
                                 >
                                     <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.479.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
                                 </a>
+                                <button
+                                    type="button"
+                                    class="flex h-10 w-10 items-center justify-center rounded-full bg-linear-to-br from-[#feda75] via-[#d62976] to-[#4f5bd5] text-white transition-opacity hover:opacity-80"
+                                    title="Share on Instagram"
+                                    aria-label="Share on Instagram"
+                                    @click="shareOnInstagram"
+                                >
+                                    <svg class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><rect width="18" height="18" x="3" y="3" rx="5" ry="5"/><path stroke-linecap="round" stroke-linejoin="round" d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><path stroke-linecap="round" stroke-linejoin="round" d="M17.5 6.5h.01"/></svg>
+                                </button>
+                                <button
+                                    type="button"
+                                    class="flex h-10 w-10 items-center justify-center rounded-full bg-black text-white transition-opacity hover:opacity-80"
+                                    title="Share on TikTok"
+                                    aria-label="Share on TikTok"
+                                    @click="shareOnTikTok"
+                                >
+                                    <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24"><path d="M15.75 2.25c.36 2.2 1.58 3.63 3.75 3.77v3.58a7.12 7.12 0 0 1-3.7-.9v6.85a6.2 6.2 0 1 1-6.2-6.2c.29 0 .58.02.86.06v3.68a2.6 2.6 0 1 0 1.65 2.42V2.25h3.64z"/></svg>
+                                </button>
                                 <a
                                     :href="`mailto:?subject=${encodeURIComponent(product.title)}&body=${encodeURIComponent(shareText + '\n\n' + shareUrl)}`"
                                     class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-600 text-white transition-opacity hover:opacity-80"
@@ -675,7 +719,7 @@ async function submitReport() {
                                     :title="copiedLink ? 'Link copied!' : 'Copy link'"
                                     @click="copyShareLink"
                                 >
-                                    <svg v-if="!copiedLink" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M13.19 8.688a4.5 4.5 0 0 1 1.242 7.244l-4.5 4.5a4.5 4.5 0 0 1-6.364-6.364l1.757-1.757m9.86-4.071a4.5 4.5 0 0 0-1.242-7.244l-4.5-4.5a4.5 4.5 0 0 0-6.364 6.364l1.757 1.757" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 9l-6 6" /></svg>
+                                    <svg v-if="!copiedLink" class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path stroke-linecap="round" stroke-linejoin="round" d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
                                     <svg v-else class="h-5 w-5" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                                 </button>
                             </div>

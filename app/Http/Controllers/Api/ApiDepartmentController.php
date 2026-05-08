@@ -11,8 +11,10 @@ class ApiDepartmentController extends Controller
     public function byFaculty(int $faculty): JsonResponse
     {
         $departments = Department::where('faculty_id', $faculty)
+            ->select(['id', 'name', 'slug'])
+            ->withCount(['products' => fn ($query) => $query->where('status', 'published')])
             ->orderBy('name')
-            ->get(['id', 'name', 'slug']);
+            ->get();
 
         return response()->json($departments);
     }

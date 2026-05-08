@@ -491,18 +491,10 @@ function submit(status: 'draft' | 'pending') {
                         <template v-else>
                             <Button
                                 type="button"
-                                variant="outline"
-                                :disabled="form.processing"
-                                @click="submit('draft')"
-                            >
-                                Save as Draft
-                            </Button>
-                            <Button
-                                type="button"
                                 :disabled="form.processing"
                                 @click="submit('pending')"
                             >
-                                Submit for Review
+                                Submit and Publish
                             </Button>
                         </template>
                     </div>

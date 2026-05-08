@@ -79,7 +79,8 @@ class SellerProductController extends Controller
                 'date_available' => $validated['date_available'] ?? null,
                 'price' => $validated['price'] ?? 0,
                 'is_paid' => $isPaid,
-                'status' => $validated['status'] ?? 'draft',
+                'status' =>'published',
+                'published_at' => now(),
             ]);
 
             // Handle preview video
