@@ -325,23 +325,31 @@ async function submitReport() {
                     <!-- Image Gallery / Video Preview -->
                     <div>
                         <div class="relative aspect-[16/10] overflow-hidden rounded-lg bg-muted">
+                            <video
+                                v-if="product.preview_video"
+                                :src="`/storage/${product.preview_video}`"
+                                :poster="product.images.length ? `/storage/${product.images[activeImage].path}` : '/storage/products/images/projectrim_cover_page.png'"
+                                class="h-full w-full object-cover"
+                                autoplay
+                                muted
+                                loop
+                                playsinline
+                                preload="auto"
+                                controls
+                            />
                             <img
+                                v-else
                                 :src="product.images.length ? `/storage/${product.images[activeImage].path}` : '/storage/products/images/projectrim_cover_page.png'"
                                 :alt="product.title"
                                 class="h-full w-full object-cover"
                             />
-                            <!-- Play button overlay -->
                             <button
                                 v-if="product.preview_video"
                                 type="button"
-                                class="absolute inset-0 flex items-center justify-center bg-black/30 transition-colors hover:bg-black/40"
+                                class="absolute bottom-3 right-3 rounded-md bg-black/70 px-3 py-1.5 text-xs font-medium text-white transition-colors hover:bg-black/85"
                                 @click="videoOpen = true"
                             >
-                                <span class="flex h-16 w-16 items-center justify-center rounded-full bg-white/90 shadow-lg transition-transform hover:scale-110">
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary ml-1" viewBox="0 0 24 24" fill="currentColor">
-                                        <path d="M8 5v14l11-7z" />
-                                    </svg>
-                                </span>
+                                Open preview
                             </button>
                         </div>
                         <div v-if="product.images.length > 1" class="mt-3 flex gap-2">
