@@ -6,6 +6,8 @@ use App\Http\Controllers\Controller;
 use App\Models\Download;
 use App\Models\Order;
 use App\Models\MessageRecipient;
+use App\Models\Product;
+use App\Models\Revenue;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -55,11 +57,25 @@ class DashboardController extends Controller
                 'created_at' => $o->created_at->diffForHumans(),
             ]);
 
+        $isSeller = $user->role === 'seller' || $user->role === 'admin';
+
+        $sellerStats = null;
+        if ($isSeller) {
+            $productIds = Product::where('user_id', $user->id)->pluck('id');
+            $sellerStats = [
+                'total_products'   => $productIds->count(),
+                'total_views'      => Product::where('user_id', $user->id)->sum('views_count'),
+                'total_downloads'  => Product::where('user_id', $user->id)->sum('downloads_count'),
+                'total_earnings'   => Revenue::where('user_id', $user->id)->sum('amount_usd'),
+            ];
+        }
+
         return Inertia::render('Dashboard', [
             'stats' => $stats,
             'recentDownloads' => $recentDownloads,
             'recentOrders' => $recentOrders,
-            'isSeller' => $user->role === 'seller' || $user->role === 'admin',
+            'isSeller' => $isSeller,
+            'sellerStats' => $sellerStats,
         ]);
     }
 }

@@ -52,7 +52,7 @@ const mainNavItems: NavItem[] = [
 ];
 
 const sellerNavItems: NavItem[] = [
-    { title: 'Seller Overview', href: '/dashboard/seller', icon: TrendingUp },
+    { title: 'Seller Dashboard', href: '/dashboard/seller', icon: TrendingUp },
     { title: 'Seller Profile', href: '/dashboard/seller/profile', icon: Store },
     { title: 'Products', href: '/dashboard/seller/products', icon: Package },
     { title: 'Orders', href: '/dashboard/seller/orders', icon: FileText },

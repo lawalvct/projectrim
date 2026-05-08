@@ -11,7 +11,7 @@ import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
-    { title: 'Seller Overview', href: '/dashboard/seller' },
+    { title: 'Seller Dashboard', href: '/dashboard/seller' },
 ];
 
 const props = defineProps<{

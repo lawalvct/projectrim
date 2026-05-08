@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
-import { Download, ShoppingCart, Mail, DollarSign, ArrowRight, Package, Store } from 'lucide-vue-next';
+import { Download, ShoppingCart, Mail, DollarSign, ArrowRight, Package, Store, Eye, TrendingUp } from 'lucide-vue-next';
 import { computed } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -34,6 +34,12 @@ const props = defineProps<{
         created_at: string;
     }>;
     isSeller: boolean;
+    sellerStats: {
+        total_products: number;
+        total_views: number;
+        total_downloads: number;
+        total_earnings: number;
+    } | null;
 }>();
 
 const page = usePage();
@@ -51,6 +57,8 @@ const statusColor = (status: string) => {
     };
     return map[status] || map.pending;
 };
+
+const fmt = (n: number) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 </script>
 
 <template>
@@ -58,6 +66,56 @@ const statusColor = (status: string) => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
+            <!-- Seller Stats -->
+            <template v-if="isSeller && sellerStats">
+                
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                    <Card>
+                        <CardHeader class="flex flex-row items-center justify-between pb-2">
+                            <CardTitle class="text-sm font-medium text-muted-foreground">My Products</CardTitle>
+                            <Package class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div class="text-2xl font-bold">{{ sellerStats.total_products }}</div>
+                            <Link href="/dashboard/seller/products" class="text-xs text-primary hover:underline mt-1 inline-block">Manage products</Link>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader class="flex flex-row items-center justify-between pb-2">
+                            <CardTitle class="text-sm font-medium text-muted-foreground">Product Views</CardTitle>
+                            <Eye class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div class="text-2xl font-bold">{{ Number(sellerStats.total_views).toLocaleString() }}</div>
+                            <p class="text-xs text-muted-foreground mt-1">Across all products</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader class="flex flex-row items-center justify-between pb-2">
+                            <CardTitle class="text-sm font-medium text-muted-foreground">Product Downloads</CardTitle>
+                            <Download class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div class="text-2xl font-bold">{{ Number(sellerStats.total_downloads).toLocaleString() }}</div>
+                            <p class="text-xs text-muted-foreground mt-1">Across all products</p>
+                        </CardContent>
+                    </Card>
+
+                    <Card>
+                        <CardHeader class="flex flex-row items-center justify-between pb-2">
+                            <CardTitle class="text-sm font-medium text-muted-foreground">Total Earnings</CardTitle>
+                            <DollarSign class="h-4 w-4 text-muted-foreground" />
+                        </CardHeader>
+                        <CardContent>
+                            <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ currencySymbol }}{{ fmt(sellerStats.total_earnings) }}</div>
+                            <Link href="/dashboard/seller" class="text-xs text-primary hover:underline mt-1 inline-block">Seller overview</Link>
+                        </CardContent>
+                    </Card>
+                </div>
+            </template>
+
             <!-- Stats Cards -->
             <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <Card>
