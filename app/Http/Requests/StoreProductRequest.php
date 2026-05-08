@@ -6,6 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 
 class StoreProductRequest extends FormRequest
 {
+    private const MAX_UPLOAD_KILOBYTES = 51200;
+
     public function authorize(): bool
     {
         return $this->user()->isSeller() || $this->user()->isAdmin();
@@ -33,13 +35,21 @@ class StoreProductRequest extends FormRequest
             'price' => ['nullable', 'numeric', 'min:0'],
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5000'],
-            'project_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:1001200'],
-            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:51200'],
+            'project_file' => ['nullable', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:' . self::MAX_UPLOAD_KILOBYTES],
+            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:' . self::MAX_UPLOAD_KILOBYTES],
             'co_authors' => ['nullable', 'array', 'max:10'],
             'co_authors.*.user_id' => ['required', 'exists:users,id'],
             'co_authors.*.contribution_percentage' => ['required', 'numeric', 'min:1', 'max:99'],
             'status' => ['nullable', 'in:draft,pending'],
             'notify_users' => ['nullable', 'boolean'],
+        ];
+    }
+
+    public function messages(): array
+    {
+        return [
+            'project_file.max' => 'The project file must not be greater than 50 MB.',
+            'preview_video.max' => 'The preview video must not be greater than 50 MB.',
         ];
     }
 }
