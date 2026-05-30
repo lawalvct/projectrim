@@ -33,6 +33,12 @@
             </div>
 
             <div class="mt-6 flex gap-2">
+                @if ($user->role !== 'admin' && $user->id !== auth()->id())
+                    <form method="POST" action="{{ route('admin.users.impersonate', $user) }}" target="_blank" rel="noopener noreferrer" onsubmit="return confirm('Open this user dashboard in a new tab?')">
+                        @csrf
+                        <button type="submit" class="rounded-lg border border-brand-accent px-4 py-2 text-sm font-medium text-brand-accent hover:bg-brand-accent hover:text-white">Impersonate</button>
+                    </form>
+                @endif
                 <a href="{{ route('admin.users.edit', $user) }}" class="rounded-lg bg-brand-accent px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary">Edit</a>
                 @if ($user->id !== auth()->id())
                     <form method="POST" action="{{ route('admin.users.destroy', $user) }}" onsubmit="return confirm('Delete this user?')">
@@ -64,7 +70,8 @@
                 <div class="rounded-xl border bg-white p-6 shadow-sm">
                     <h3 class="mb-3 font-semibold">Seller Profile</h3>
                     <div class="grid gap-3 text-sm sm:grid-cols-2">
-                        <div><span class="text-gray-500">Bio:</span> {{ $user->sellerProfile->bio ?? '—' }}</div>
+                        <div><span class="text-gray-500">Bio:</span> {!! strip_tags($user->sellerProfile->bio ?? '—', '<b><i><u><br><p>') !!}
+</div>
                         <div><span class="text-gray-500">Company:</span> {{ $user->sellerProfile->company ?? '—' }}</div>
                         <div><span class="text-gray-500">Phone:</span> {{ $user->sellerProfile->phone ?? '—' }}</div>
                         <div><span class="text-gray-500">Country:</span> {{ $user->sellerProfile->country ?? '—' }}</div>

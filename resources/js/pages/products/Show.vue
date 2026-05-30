@@ -176,22 +176,51 @@ const smartLinkEnabled = computed(() => settings.value.smart_link_enabled === '1
 const smartLinkUrl = computed(() => settings.value.smart_link_url || '');
 
 function triggerSmartLink() {
-    if (!smartLinkEnabled.value || !smartLinkUrl.value) return;
+    if (!smartLinkEnabled.value || !smartLinkUrl.value) {
+        return;
+    }
+
     window.open(smartLinkUrl.value, '_blank', 'noopener,noreferrer');
 }
 
+function redirectGuestToLogin(message: string) {
+    if (typeof window !== 'undefined') {
+        sessionStorage.setItem('authMessage', message);
+        sessionStorage.setItem('postLoginReturnUrl', window.location.href);
+    }
+
+    router.visit('/login');
+}
+
+function handleFreeDownload(event: MouseEvent) {
+    triggerSmartLink();
+
+    if (auth.value?.user) {
+        return;
+    }
+
+    event.preventDefault();
+    redirectGuestToLogin('Please log in to download this project.');
+}
+
 function switchTab(tab: 'abstract' | 'toc' | 'chapter1' | 'reviews' | 'messenger') {
-    if (tab !== 'abstract') triggerSmartLink();
+    if (tab !== 'abstract') {
+        triggerSmartLink();
+    }
+
     activeTab.value = tab;
 }
 
 async function toggleLike() {
     if (!auth.value?.user) {
-        router.visit('/login');
+        redirectGuestToLogin('Please log in to like this project.');
+
         return;
     }
+
     triggerSmartLink();
     togglingLike.value = true;
+
     try {
         const { data } = await axios.post(`/products/${props.product.id}/like`);
         liked.value = data.liked;
@@ -287,9 +316,21 @@ const reportSuccess = ref(false);
 const reportError = ref('');
 const alreadyReported = ref(props.hasReported);
 
+function openReportDialog() {
+    if (!auth.value?.user) {
+        redirectGuestToLogin('Please log in to report this project.');
+
+        return;
+    }
+
+    reportOpen.value = true;
+    reportSuccess.value = false;
+    reportError.value = '';
+}
+
 async function submitReport() {
     if (!auth.value?.user) {
-        router.visit('/login');
+        redirectGuestToLogin('Please log in to report this project.');
         return;
     }
     if (!reportReason.value.trim()) {
@@ -568,7 +609,7 @@ async function submitReport() {
                                 <Button v-if="product.is_paid" class="w-full" size="lg" :disabled="addingToCart" @click="addToCart">
                                     {{ addingToCart ? 'Adding...' : 'Add to Cart' }}
                                 </Button>
-                                <a v-else :href="`/download/${product.id}`" class="w-full" @click="triggerSmartLink">
+                                <a v-else :href="`/download/${product.id}`" class="w-full" @click="handleFreeDownload">
                                     <Button class="w-full" size="lg">
                                         Download Free
                                     </Button>
@@ -610,7 +651,7 @@ async function submitReport() {
                                 variant="outline"
                                 class="w-full gap-2 mt-2 text-destructive hover:text-destructive"
                                 :disabled="alreadyReported"
-                                @click="auth?.user ? (reportOpen = true, reportSuccess = false, reportError = '') : router.visit('/login')"
+                                @click="openReportDialog"
                             >
                                 <svg class="h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 21v-4m0 0V5a2 2 0 012-2h6.5l1 1H21l-3 6 3 6h-8.5l-1-1H5a2 2 0 00-2 2z" /></svg>
                                 {{ alreadyReported ? 'Already Reported' : 'Report this project' }}

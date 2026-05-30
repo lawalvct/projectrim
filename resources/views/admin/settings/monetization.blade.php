@@ -3,6 +3,11 @@
 @section('title', 'Monetization Settings')
 
 @section('content')
+    @php
+        $viewRewardRate = $settings['view_reward_rate'] ?? (isset($settings['view_reward_usd']) ? (float) $settings['view_reward_usd'] * 1000 : '0');
+        $downloadRewardRate = $settings['download_reward_rate'] ?? ($settings['download_reward_usd'] ?? '0');
+    @endphp
+
     {{-- Settings Nav --}}
     <div class="mb-4 flex flex-wrap gap-2">
         <a href="{{ route('admin.settings.general') }}" class="rounded-lg border px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50">General</a>
@@ -36,17 +41,17 @@
 
                 <div class="mb-4">
                     <label class="mb-1 block text-sm font-medium">Smart Link Code</label>
-                    <textarea name="settings[smart_link_code]" rows="4" class="w-full rounded-lg border px-3 py-2 text-sm font-mono text-xs" placeholder="Paste JS/HTML code here">{{ $settings['smart_link_code'] ?? '' }}</textarea>
+                    <textarea name="settings[smart_link_code]" rows="4" class="w-full rounded-lg border px-3 py-2 font-mono text-xs" placeholder="Paste JS/HTML code here">{{ $settings['smart_link_code'] ?? '' }}</textarea>
                 </div>
 
                 <div class="mb-4">
                     <label class="mb-1 block text-sm font-medium">View Reward Rate (per 1000 views)</label>
-                    <input type="number" step="0.01" name="settings[view_reward_rate]" value="{{ $settings['view_reward_rate'] ?? '0' }}" class="w-full rounded-lg border px-3 py-2 text-sm max-w-[200px]" />
+                    <input type="number" step="0.01" name="settings[view_reward_rate]" value="{{ $viewRewardRate }}" class="w-full rounded-lg border px-3 py-2 text-sm max-w-50" />
                 </div>
 
                 <div class="mb-4">
                     <label class="mb-1 block text-sm font-medium">Download Reward Rate (per download)</label>
-                    <input type="number" step="0.01" name="settings[download_reward_rate]" value="{{ $settings['download_reward_rate'] ?? '0' }}" class="w-full rounded-lg border px-3 py-2 text-sm max-w-[200px]" />
+                    <input type="number" step="0.01" name="settings[download_reward_rate]" value="{{ $downloadRewardRate }}" class="w-full rounded-lg border px-3 py-2 text-sm max-w-50" />
                 </div>
 
                 <button type="submit" class="rounded-lg bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-accent">Save Settings</button>

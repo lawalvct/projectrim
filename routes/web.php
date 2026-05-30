@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Admin\AdminUserController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\CartController;
@@ -56,6 +57,7 @@ Route::post('/products/{product}/messages', [ProductMessageController::class, 's
 Route::middleware('auth')->group(function () {
     Route::get('/download/{product}', [DownloadController::class, 'download'])->name('download.product');
     Route::get('/download/{product}/file', [DownloadController::class, 'file'])->name('download.file');
+    Route::post('/impersonation/stop', [AdminUserController::class, 'stopImpersonating'])->name('impersonation.stop');
 });
 
 // Social authentication

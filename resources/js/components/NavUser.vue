@@ -30,6 +30,7 @@ const { isMobile, state } = useSidebar();
                         size="lg"
                         class="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         data-test="sidebar-menu-button"
+                        data-tour="user-menu"
                     >
                         <UserInfo :user="user" />
                         <ChevronsUpDown class="ml-auto size-4" />

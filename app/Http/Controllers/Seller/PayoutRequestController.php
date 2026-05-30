@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use App\Models\PaymentMethod;
 use App\Models\PayoutRequest;
 use App\Models\Revenue;
+use App\Models\Setting;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -16,6 +17,7 @@ class PayoutRequestController extends Controller
     public function index(Request $request): Response
     {
         $userId = $request->user()->id;
+        $minimumPayout = $this->minimumPayoutAmount();
 
         $totalRevenue = (float) Revenue::where('user_id', $userId)->sum('amount_usd');
         $totalPaidOut = (float) PayoutRequest::where('user_id', $userId)
@@ -58,6 +60,7 @@ class PayoutRequestController extends Controller
                 'pending_payout' => $pendingPayout,
                 'available' => $availableBalance,
             ],
+            'minimumPayout' => $minimumPayout,
             'paymentMethods' => $paymentMethods,
             'filters' => ['status' => $request->status],
         ]);
@@ -66,11 +69,15 @@ class PayoutRequestController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $userId = $request->user()->id;
+        $minimumPayout = $this->minimumPayoutAmount();
 
         $validated = $request->validate([
-            'amount_usd' => ['required', 'numeric', 'min:1'],
+            'amount_usd' => ['required', 'numeric', 'gt:0', 'min:'.$minimumPayout],
             'payment_method_id' => ['required', 'exists:payment_methods,id'],
             'payment_details' => ['nullable', 'string', 'max:2000'],
+        ], [
+            'amount_usd.gt' => 'Enter a payout amount greater than zero.',
+            'amount_usd.min' => 'The minimum payout amount is '.$this->currencySymbol().number_format($minimumPayout, 2).'.',
         ]);
 
         // Verify available balance
@@ -88,9 +95,21 @@ class PayoutRequestController extends Controller
             'amount_usd' => $validated['amount_usd'],
             'status' => 'pending',
             'payment_method_id' => $validated['payment_method_id'],
-            'payment_details' => $validated['payment_details'],
+            'payment_details' => $validated['payment_details'] ?? null,
         ]);
 
         return back()->with('success', 'Payout request submitted successfully.');
+    }
+
+    private function minimumPayoutAmount(): float
+    {
+        $minimumPayout = Setting::getValue('minimum_payout', '5');
+
+        return max((float) $minimumPayout, 0.0);
+    }
+
+    private function currencySymbol(): string
+    {
+        return (string) Setting::getValue('currency_symbol', '$');
     }
 }

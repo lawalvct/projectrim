@@ -45,10 +45,10 @@ const isSeller = computed(() => user.value?.role === 'seller' || user.value?.rol
 
 const mainNavItems: NavItem[] = [
     { title: 'Dashboard', href: dashboard(), icon: LayoutGrid },
-    { title: 'Explore Products', href: '/dashboard/explore', icon: Search },
-    { title: 'My Downloads', href: '/dashboard/downloads', icon: Download },
-    { title: 'My Orders', href: '/dashboard/orders', icon: ShoppingCart },
-    { title: 'Messages', href: '/dashboard/messages', icon: Mail },
+    { title: 'Explore Products', href: '/dashboard/explore', icon: Search, tour: 'explore' },
+    { title: 'My Downloads', href: '/dashboard/downloads', icon: Download, tour: 'downloads' },
+    { title: 'My Orders', href: '/dashboard/orders', icon: ShoppingCart, tour: 'orders' },
+    { title: 'Messages', href: '/dashboard/messages', icon: Mail, tour: 'messages' },
 ];
 
 const sellerNavItems: NavItem[] = [

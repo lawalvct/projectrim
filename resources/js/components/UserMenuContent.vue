@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Link, router } from '@inertiajs/vue3';
-import { LogOut, Settings } from 'lucide-vue-next';
+import { HelpCircle, LogOut, Settings } from 'lucide-vue-next';
 import {
     DropdownMenuGroup,
     DropdownMenuItem,
@@ -8,6 +8,7 @@ import {
     DropdownMenuSeparator,
 } from '@/components/ui/dropdown-menu';
 import UserInfo from '@/components/UserInfo.vue';
+import { useTour } from '@/composables/useTour';
 import { logout } from '@/routes';
 import { edit } from '@/routes/profile';
 import type { User } from '@/types';
@@ -15,6 +16,8 @@ import type { User } from '@/types';
 type Props = {
     user: User;
 };
+
+const { replay } = useTour();
 
 const handleLogout = () => {
     router.flushAll();
@@ -36,6 +39,10 @@ defineProps<Props>();
                 <Settings class="mr-2 h-4 w-4" />
                 Settings
             </Link>
+        </DropdownMenuItem>
+        <DropdownMenuItem class="cursor-pointer" @select="replay()">
+            <HelpCircle class="mr-2 h-4 w-4" />
+            Replay Tour
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />

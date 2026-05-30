@@ -45,8 +45,11 @@
                 </div>
 
                 <div class="mb-4">
-                    <label class="mb-1 block text-sm font-medium">Minimum Payout Amount</label>
-                    <input type="number" step="0.01" min="0" name="settings[minimum_payout]" value="{{ $settings['minimum_payout'] ?? '50' }}" class="w-full rounded-lg border px-3 py-2 text-sm max-w-[200px]" />
+                    <label class="mb-1 block text-sm font-medium">Minimum Payout Amount ($)</label>
+                    <div class="relative max-w-[200px]">
+                        <span class="absolute left-3 top-1/2 -translate-y-1/2 text-sm text-gray-500">$</span>
+                        <input type="number" step="0.01" min="0" name="settings[minimum_payout]" value="{{ $settings['minimum_payout'] ?? '5' }}" class="w-full rounded-lg border px-3 py-2 pl-7 text-sm" />
+                    </div>
                 </div>
 
                 <button type="submit" class="rounded-lg bg-brand-primary px-5 py-2 text-sm font-medium text-white hover:bg-brand-accent">Save Settings</button>

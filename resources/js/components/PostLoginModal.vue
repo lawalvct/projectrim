@@ -9,7 +9,7 @@ import {
     DialogTitle,
 } from '@/components/ui/dialog';
 import { router, usePage } from '@inertiajs/vue3';
-import { computed, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 
 const page = usePage();
 
@@ -18,16 +18,31 @@ const loginReturn = computed(() => (page.props as Record<string, unknown>).login
 const open = ref(false);
 const returnUrl = ref<string | null>(null);
 
+const showReturnPrompt = (value: string) => {
+    returnUrl.value = value;
+    open.value = true;
+};
+
 watch(
     loginReturn,
     (value) => {
         if (value) {
-            returnUrl.value = value;
-            open.value = true;
+            showReturnPrompt(value);
         }
     },
     { immediate: true },
 );
+
+onMounted(() => {
+    if (returnUrl.value || typeof window === 'undefined') return;
+
+    const storedReturnUrl = sessionStorage.getItem('postLoginReturnUrl');
+
+    if (storedReturnUrl) {
+        sessionStorage.removeItem('postLoginReturnUrl');
+        showReturnPrompt(storedReturnUrl);
+    }
+});
 
 const goDashboard = () => {
     open.value = false;

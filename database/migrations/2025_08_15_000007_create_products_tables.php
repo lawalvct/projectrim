@@ -41,7 +41,9 @@ return new class extends Migration
             $table->index('department_id');
             $table->index('institution');
             $table->index('status');
-            $table->fullText(['title', 'abstract', 'meta_keywords', 'institution']);
+            if (Schema::getConnection()->getDriverName() !== 'sqlite') {
+                $table->fullText(['title', 'abstract', 'meta_keywords', 'institution']);
+            }
         });
 
         Schema::create('product_images', function (Blueprint $table) {

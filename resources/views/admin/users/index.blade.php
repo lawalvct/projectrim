@@ -44,7 +44,15 @@
                         <td class="px-4 py-3">{{ $user->orders_count }}</td>
                         <td class="px-4 py-3 text-gray-500">{{ $user->created_at->format('M d, Y') }}</td>
                         <td class="px-4 py-3">
-                            <a href="{{ route('admin.users.show', $user) }}" class="text-brand-light hover:underline">View</a>
+                            <div class="flex items-center gap-3">
+                                <a href="{{ route('admin.users.show', $user) }}" class="text-brand-light hover:underline">View</a>
+                                @if ($user->role !== 'admin' && $user->id !== auth()->id())
+                                    <form method="POST" action="{{ route('admin.users.impersonate', $user) }}" target="_blank" rel="noopener noreferrer" onsubmit="return confirm('Open this user dashboard in a new tab?')">
+                                        @csrf
+                                        <button type="submit" class="text-brand-accent hover:underline">Impersonate</button>
+                                    </form>
+                                @endif
+                            </div>
                         </td>
                     </tr>
                 @empty

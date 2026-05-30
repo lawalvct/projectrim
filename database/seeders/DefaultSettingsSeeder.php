@@ -28,18 +28,17 @@ class DefaultSettingsSeeder extends Seeder
             ['group' => 'social', 'key' => 'instagram_url', 'value' => '', 'type' => 'text'],
             ['group' => 'social', 'key' => 'linkedin_url', 'value' => '', 'type' => 'text'],
 
-            // Smart links
-            ['group' => 'smartlinks', 'key' => 'smart_link_enabled', 'value' => '0', 'type' => 'boolean'],
-            ['group' => 'smartlinks', 'key' => 'smart_link_url', 'value' => '', 'type' => 'url'],
-            ['group' => 'smartlinks', 'key' => 'smart_link_code', 'value' => '', 'type' => 'textarea'],
-
             // Seller
             ['group' => 'seller', 'key' => 'auto_approve_sellers', 'value' => 'true', 'type' => 'boolean'],
             ['group' => 'seller', 'key' => 'allow_paid_products', 'value' => 'false', 'type' => 'boolean'],
+            ['group' => 'seller', 'key' => 'minimum_payout', 'value' => '5', 'type' => 'number'],
 
             // Monetization
-            ['group' => 'monetization', 'key' => 'view_reward_usd', 'value' => '0.10', 'type' => 'number'],
-            ['group' => 'monetization', 'key' => 'download_reward_usd', 'value' => '1.00', 'type' => 'number'],
+            ['group' => 'monetization', 'key' => 'smart_link_enabled', 'value' => '0', 'type' => 'boolean'],
+            ['group' => 'monetization', 'key' => 'smart_link_url', 'value' => '', 'type' => 'url'],
+            ['group' => 'monetization', 'key' => 'smart_link_code', 'value' => '', 'type' => 'textarea'],
+            ['group' => 'monetization', 'key' => 'view_reward_rate', 'value' => '0.10', 'type' => 'number'],
+            ['group' => 'monetization', 'key' => 'download_reward_rate', 'value' => '1.00', 'type' => 'number'],
 
             // Payment
             ['group' => 'payment', 'key' => 'currency', 'value' => 'NGN', 'type' => 'text'],

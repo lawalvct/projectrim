@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { Head, Link, usePage } from '@inertiajs/vue3';
 import { Download, ShoppingCart, Mail, DollarSign, ArrowRight, Package, Store, Eye, TrendingUp } from 'lucide-vue-next';
-import { computed } from 'vue';
+import { computed, onMounted } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useTour } from '@/composables/useTour';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 
@@ -59,6 +60,13 @@ const statusColor = (status: string) => {
 };
 
 const fmt = (n: number) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+const { maybeAutoStart } = useTour();
+
+onMounted(() => {
+    maybeAutoStart();
+});
+
 </script>
 
 <template>
@@ -68,7 +76,7 @@ const fmt = (n: number) => Number(n).toLocaleString(undefined, { minimumFraction
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
             <!-- Seller Stats -->
             <template v-if="isSeller && sellerStats">
-                
+
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                     <Card>
                         <CardHeader class="flex flex-row items-center justify-between pb-2">
@@ -160,7 +168,7 @@ const fmt = (n: number) => Number(n).toLocaleString(undefined, { minimumFraction
             </div>
 
             <!-- Become a Seller Banner -->
-            <Card v-if="!isSeller" class="border-primary/20 bg-primary/5">
+            <Card v-if="!isSeller" data-tour="apply-seller" class="border-primary/20 bg-primary/5">
                 <CardContent class="flex items-center justify-between p-6">
                     <div class="flex items-center gap-4">
                         <div class="flex h-12 w-12 items-center justify-center rounded-full bg-primary/10">

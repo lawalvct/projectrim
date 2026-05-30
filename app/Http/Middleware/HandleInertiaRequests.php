@@ -52,10 +52,22 @@ class HandleInertiaRequests extends Middleware
                 'message' => fn () => $request->session()->get('message'),
                 'error' => fn () => $request->session()->get('flash.error') ?? data_get($request->session()->get('flash'), 'error'),
             ],
+            'impersonation' => fn () => [
+                'active' => $request->session()->has('impersonator_id'),
+                'stop_url' => route('impersonation.stop'),
+            ],
             'loginReturn' => fn () => $request->session()->get('login_return_url'),
             'cartCount' => fn () => $this->getCartCount($request),
-            'navPages' => fn () => Page::published()->nav()->orderBy('sort_order')->get(['id', 'title', 'slug']),
-            'footerPages' => fn () => Page::published()->footer()->orderBy('sort_order')->get(['id', 'title', 'slug']),
+            'navPages' => fn () => Page::query()
+                ->where('is_published', true)
+                ->whereIn('position', ['nav', 'both'], 'and', false)
+                ->orderBy('sort_order', 'asc')
+                ->get(['id', 'title', 'slug']),
+            'footerPages' => fn () => Page::query()
+                ->where('is_published', true)
+                ->whereIn('position', ['footer', 'both'], 'and', false)
+                ->orderBy('sort_order', 'asc')
+                ->get(['id', 'title', 'slug']),
             'settings' => fn () => Setting::getValue('site_name') ? [
                 'site_name' => Setting::getValue('site_name'),
                 'site_tagline' => Setting::getValue('site_tagline'),
@@ -75,9 +87,9 @@ class HandleInertiaRequests extends Middleware
     private function getCartCount(Request $request): int
     {
         if ($user = $request->user()) {
-            $cart = Cart::where('user_id', $user->id)->first();
+            $cart = Cart::query()->where('user_id', $user->id)->first();
         } else {
-            $cart = Cart::where('session_id', $request->session()->getId())->first();
+            $cart = Cart::query()->where('session_id', $request->session()->getId())->first();
         }
 
         return $cart ? $cart->items()->count() : 0;

@@ -15,7 +15,8 @@ class RevenueService
     public function recordViewRevenue(Product $product, string $ip): void
     {
         // Anti-fraud: check if this IP already earned view revenue for this product in last 24h
-        $exists = Revenue::where('product_id', $product->id)
+        $exists = Revenue::query()
+            ->where('product_id', $product->id)
             ->where('type', 'view')
             ->where('visitor_ip', $ip)
             ->where('created_at', '>=', now()->subHours(24))
@@ -25,7 +26,7 @@ class RevenueService
             return;
         }
 
-        $amount = (float) Setting::getValue('view_reward_usd', '0.10');
+        $amount = $this->viewRewardAmount();
 
         if ($amount <= 0) {
             return;
@@ -40,7 +41,8 @@ class RevenueService
      */
     public function recordDownloadRevenue(Product $product, ?int $userId, string $ip): void
     {
-        $exists = Revenue::where('product_id', $product->id)
+        $exists = Revenue::query()
+            ->where('product_id', $product->id)
             ->where('type', 'download')
             ->where('visitor_ip', $ip)
             ->where('created_at', '>=', now()->subHours(24))
@@ -50,7 +52,7 @@ class RevenueService
             return;
         }
 
-        $amount = (float) Setting::getValue('download_reward_usd', '1.00');
+        $amount = $this->downloadRewardAmount();
 
         if ($amount <= 0) {
             return;
@@ -87,5 +89,27 @@ class RevenueService
                 ]);
             }
         }
+    }
+
+    private function viewRewardAmount(): float
+    {
+        $ratePerThousandViews = Setting::getValue('view_reward_rate');
+
+        if ($ratePerThousandViews !== null) {
+            return (float) $ratePerThousandViews / 1000;
+        }
+
+        return (float) Setting::getValue('view_reward_usd', '0.10');
+    }
+
+    private function downloadRewardAmount(): float
+    {
+        $rewardPerDownload = Setting::getValue('download_reward_rate');
+
+        if ($rewardPerDownload !== null) {
+            return (float) $rewardPerDownload;
+        }
+
+        return (float) Setting::getValue('download_reward_usd', '1.00');
     }
 }

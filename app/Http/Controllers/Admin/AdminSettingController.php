@@ -18,7 +18,10 @@ class AdminSettingController extends Controller
 
     public function monetization()
     {
-        $settings = Setting::getGroup('monetization');
+        $settings = array_merge(
+            Setting::getGroup('smartlinks'),
+            Setting::getGroup('monetization'),
+        );
 
         return view('admin.settings.monetization', compact('settings'));
     }

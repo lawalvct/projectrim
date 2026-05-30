@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router, useForm, usePage } from '@inertiajs/vue3';
-import { Wallet, DollarSign, Clock, CheckCircle, Plus } from 'lucide-vue-next';
-import { ref, watch, computed } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { CheckCircle, Clock, DollarSign, Plus, Wallet } from 'lucide-vue-next';
+import { computed, ref, watch } from 'vue';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import AppLayout from '@/layouts/AppLayout.vue';
 import { dashboard } from '@/routes';
 import type { BreadcrumbItem } from '@/types';
 
@@ -40,6 +40,7 @@ const props = defineProps<{
         pending_payout: number;
         available: number;
     };
+    minimumPayout: number;
     paymentMethods: Array<{ id: number; name: string }>;
     filters: { status: string | null };
 }>();
@@ -47,11 +48,17 @@ const props = defineProps<{
 const page = usePage();
 const currencySymbol = computed(() => {
     const settings = (page.props.settings as Record<string, string>) || {};
+
     return settings.currency_symbol || '$';
 });
 const fmt = (n: number) => Number(n).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
 const flash = computed(() => (page.props.flash as any)?.success);
+const minimumPayout = computed(() => Number(props.minimumPayout) || 0);
+const minimumRequestAmount = computed(() => Math.max(minimumPayout.value, 0.01));
+const canRequestPayout = computed(() => props.balance.available >= minimumRequestAmount.value);
+const hasBelowMinimumBalance = computed(() => props.balance.available > 0 && props.balance.available < minimumRequestAmount.value);
+const minimumPayoutError = computed(() => `The minimum payout amount is ${currencySymbol.value}${fmt(minimumPayout.value)}.`);
 
 const statusFilter = ref(props.filters.status || '');
 const showDialog = ref(false);
@@ -67,6 +74,14 @@ const form = useForm({
 });
 
 const submitPayout = () => {
+    const requestedAmount = Number(form.amount_usd);
+
+    if (form.amount_usd !== '' && minimumPayout.value > 0 && Number.isFinite(requestedAmount) && requestedAmount < minimumPayout.value) {
+        form.setError('amount_usd', minimumPayoutError.value);
+
+        return;
+    }
+
     form.post('/dashboard/seller/payouts', {
         preserveScroll: true,
         onSuccess: () => {
@@ -133,7 +148,7 @@ const statusColor = (status: string) => ({
                 {{ flash }}
             </div>
 
-            <div class="flex items-center justify-between">
+            <div class="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                 <div class="flex items-center gap-3">
                     <h2 class="text-lg font-semibold">Payout History</h2>
                     <select v-model="statusFilter" class="rounded-md border bg-background px-3 py-2 text-sm">
@@ -145,53 +160,67 @@ const statusColor = (status: string) => ({
                     </select>
                 </div>
 
-                <Dialog v-model:open="showDialog">
-                    <DialogTrigger as-child>
-                        <Button :disabled="balance.available <= 0">
-                            <Plus class="mr-1 h-4 w-4" /> Request Payout
-                        </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                        <DialogHeader>
-                            <DialogTitle>Request Payout</DialogTitle>
-                        </DialogHeader>
-                        <form @submit.prevent="submitPayout" class="space-y-4">
-                            <p class="text-sm text-muted-foreground">
-                                Available balance: <strong class="text-green-600">{{ currencySymbol }}{{ fmt(balance.available) }}</strong>
-                            </p>
-
-                            <div>
-                                <Label for="amount">Amount (USD)</Label>
-                                <Input id="amount" v-model="form.amount_usd" type="number" step="0.01" min="1" :max="balance.available" placeholder="0.00" />
-                                <p v-if="form.errors.amount_usd" class="mt-1 text-xs text-red-500">{{ form.errors.amount_usd }}</p>
-                            </div>
-
-                            <div>
-                                <Label for="pm">Payment Method</Label>
-                                <select id="pm" v-model="form.payment_method_id" class="w-full rounded-md border bg-background px-3 py-2 text-sm">
-                                    <option value="">Select method</option>
-                                    <option v-for="pm in paymentMethods" :key="pm.id" :value="pm.id">{{ pm.name }}</option>
-                                </select>
-                                <p v-if="form.errors.payment_method_id" class="mt-1 text-xs text-red-500">{{ form.errors.payment_method_id }}</p>
-                            </div>
-
-                            <div>
-                                <Label for="details">Payment Details (optional)</Label>
-                                <textarea
-                                    id="details"
-                                    v-model="form.payment_details"
-                                    rows="3"
-                                    class="w-full rounded-md border bg-background px-3 py-2 text-sm"
-                                    placeholder="Bank name, account number, etc."
-                                />
-                            </div>
-
-                            <Button type="submit" :disabled="form.processing" class="w-full">
-                                {{ form.processing ? 'Submitting...' : 'Submit Request' }}
+                <div class="flex flex-col items-start gap-1 sm:items-end">
+                    <Dialog v-model:open="showDialog">
+                        <DialogTrigger as-child>
+                            <Button :disabled="!canRequestPayout">
+                                <Plus class="mr-1 h-4 w-4" /> Request Payout
                             </Button>
-                        </form>
-                    </DialogContent>
-                </Dialog>
+                        </DialogTrigger>
+                        <DialogContent>
+                            <DialogHeader>
+                                <DialogTitle>Request Payout</DialogTitle>
+                            </DialogHeader>
+                            <form @submit.prevent="submitPayout" class="space-y-4">
+                                <p class="text-sm text-muted-foreground">
+                                    Available balance: <strong class="text-green-600">{{ currencySymbol }}{{ fmt(balance.available) }}</strong>
+                                </p>
+                                <p class="text-sm text-muted-foreground">
+                                    Minimum payout: <strong>{{ currencySymbol }}{{ fmt(minimumPayout) }}</strong>
+                                </p>
+
+                                <div>
+                                    <Label for="amount">Amount (USD)</Label>
+                                    <Input
+                                        id="amount"
+                                        v-model="form.amount_usd"
+                                        type="number"
+                                        step="0.01"
+                                        :min="minimumRequestAmount"
+                                        :max="balance.available"
+                                        :placeholder="fmt(minimumRequestAmount)"
+                                    />
+                                    <p v-if="form.errors.amount_usd" class="mt-1 text-xs text-red-500">{{ form.errors.amount_usd }}</p>
+                                </div>
+
+                                <div>
+                                    <Label for="pm">Payment Method</Label>
+                                    <select id="pm" v-model="form.payment_method_id" class="w-full rounded-md border bg-background px-3 py-2 text-sm">
+                                        <option value="">Select method</option>
+                                        <option v-for="pm in paymentMethods" :key="pm.id" :value="pm.id">{{ pm.name }}</option>
+                                    </select>
+                                    <p v-if="form.errors.payment_method_id" class="mt-1 text-xs text-red-500">{{ form.errors.payment_method_id }}</p>
+                                </div>
+
+                                <div>
+                                    <Label for="details">Payment Details (optional)</Label>
+                                    <textarea
+                                        id="details"
+                                        v-model="form.payment_details"
+                                        rows="3"
+                                        class="w-full rounded-md border bg-background px-3 py-2 text-sm"
+                                        placeholder="Bank name, account number, etc."
+                                    />
+                                </div>
+
+                                <Button type="submit" :disabled="form.processing" class="w-full">
+                                    {{ form.processing ? 'Submitting...' : 'Submit Request' }}
+                                </Button>
+                            </form>
+                        </DialogContent>
+                    </Dialog>
+                    <p v-if="hasBelowMinimumBalance" class="text-xs text-muted-foreground">Minimum payout: {{ currencySymbol }}{{ fmt(minimumPayout) }}</p>
+                </div>
             </div>
 
             <Card>
@@ -245,8 +274,9 @@ const statusColor = (status: string) => ({
                         class="inline-flex h-9 min-w-9 items-center justify-center rounded-md border px-3 text-sm transition-colors"
                         :class="link.active ? 'border-primary bg-primary text-white' : 'hover:bg-muted'"
                         preserve-scroll
-                        v-html="link.label"
-                    />
+                    >
+                        <span v-html="link.label" />
+                    </Link>
                     <span v-else class="inline-flex h-9 min-w-9 items-center justify-center text-sm text-muted-foreground" v-html="link.label" />
                 </template>
             </nav>
