@@ -18,7 +18,7 @@
             </div>
 
             <div class="grid gap-3 text-sm sm:grid-cols-2">
-                <div><span class="text-gray-500">Seller:</span> {{ $payout->user->name }}</div>
+                <div><span class="text-gray-500">Creator:</span> {{ $payout->user->name }}</div>
                 <div><span class="text-gray-500">Email:</span> {{ $payout->user->email }}</div>
                 <div><span class="text-gray-500">Amount:</span> <strong>${{ number_format($payout->amount_usd, 2) }}</strong></div>
                 <div><span class="text-gray-500">Payment Method:</span> {{ $payout->paymentMethod->name ?? '—' }}</div>
@@ -39,7 +39,7 @@
 
             @if ($payout->user->sellerProfile?->preferredPaymentMethod || $payout->user->sellerProfile?->bank_account_details)
                 <div class="mt-4 rounded-lg bg-blue-50 border border-blue-100 p-3">
-                    <h4 class="text-xs font-semibold text-blue-700 uppercase mb-2">Seller's Payment Profile</h4>
+                    <h4 class="text-xs font-semibold text-blue-700 uppercase mb-2">Creator Payment Profile</h4>
                     @if ($payout->user->sellerProfile?->preferredPaymentMethod)
                         <p class="text-sm mb-1"><span class="text-gray-500">Preferred Method:</span> {{ $payout->user->sellerProfile->preferredPaymentMethod->name }}</p>
                     @endif

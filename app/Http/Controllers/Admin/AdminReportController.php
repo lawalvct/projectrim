@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\Report;
 use Illuminate\Http\Request;
 
@@ -10,6 +11,7 @@ class AdminReportController extends Controller
 {
     public function index(Request $request)
     {
+        AdminSidebarBadges::markAsSeen('reports');
         $query = Report::with(['user:id,name,email', 'product:id,title,slug']);
 
         if ($request->filled('status')) {

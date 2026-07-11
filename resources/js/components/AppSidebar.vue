@@ -52,8 +52,8 @@ const mainNavItems: NavItem[] = [
 ];
 
 const sellerNavItems: NavItem[] = [
-    { title: 'Seller Dashboard', href: '/dashboard/seller', icon: TrendingUp },
-    { title: 'Seller Profile', href: '/dashboard/seller/profile', icon: Store },
+    { title: 'Creator Dashboard', href: '/dashboard/seller', icon: TrendingUp },
+    { title: 'Creator Profile', href: '/dashboard/seller/profile', icon: Store },
     { title: 'Products', href: '/dashboard/seller/products', icon: Package },
     { title: 'Orders', href: '/dashboard/seller/orders', icon: FileText },
     { title: 'Transactions', href: '/dashboard/seller/transactions', icon: BadgeDollarSign },
@@ -82,25 +82,25 @@ const { isCurrentUrl } = useCurrentUrl();
         <SidebarContent>
             <NavMain :items="mainNavItems" />
 
-            <!-- Become a Seller CTA (only for regular users) -->
+            <!-- Become a Creator CTA (only for regular users) -->
             <SidebarGroup v-if="!isSeller" class="px-2 py-0">
                 <SidebarMenu>
                     <SidebarMenuItem>
-                        <SidebarMenuButton as-child :is-active="isCurrentUrl('/dashboard/apply-seller')" tooltip="Become a Seller">
+                        <SidebarMenuButton as-child :is-active="isCurrentUrl('/dashboard/apply-seller')" tooltip="Become a Creator">
                             <Link href="/dashboard/apply-seller">
                                 <UserPlus />
-                                <span>Become a Seller</span>
+                                <span>Become a Creator</span>
                             </Link>
                         </SidebarMenuButton>
                     </SidebarMenuItem>
                 </SidebarMenu>
             </SidebarGroup>
 
-            <!-- Seller section -->
+            <!-- Creator section -->
             <template v-if="isSeller">
                 <SidebarSeparator />
                 <SidebarGroup class="px-2 py-0">
-                    <SidebarGroupLabel>Seller</SidebarGroupLabel>
+                    <SidebarGroupLabel>Creator</SidebarGroupLabel>
                     <SidebarMenu>
                         <SidebarMenuItem v-for="item in sellerNavItems" :key="item.title">
                             <SidebarMenuButton as-child :is-active="isCurrentUrl(item.href)" :tooltip="item.title">

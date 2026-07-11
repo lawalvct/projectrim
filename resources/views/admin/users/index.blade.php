@@ -9,7 +9,7 @@
             <select name="role" class="rounded-lg border px-3 py-2 text-sm">
                 <option value="">All Roles</option>
                 <option value="user" @selected(request('role') === 'user')>User</option>
-                <option value="seller" @selected(request('role') === 'seller')>Seller</option>
+                <option value="seller" @selected(request('role') === 'seller')>Creator</option>
                 <option value="admin" @selected(request('role') === 'admin')>Admin</option>
             </select>
             <button type="submit" class="rounded-lg bg-brand-accent px-4 py-2 text-sm font-medium text-white hover:bg-brand-primary">Filter</button>
@@ -37,7 +37,7 @@
                         <td class="px-4 py-3">
                             <span class="rounded-full px-2 py-0.5 text-xs font-medium
                                 {{ $user->role === 'admin' ? 'bg-purple-100 text-purple-700' : ($user->role === 'seller' ? 'bg-blue-100 text-blue-700' : 'bg-gray-100 text-gray-600') }}">
-                                {{ ucfirst($user->role) }}
+                                {{ $user->role === 'seller' ? 'Creator' : ucfirst($user->role) }}
                             </span>
                         </td>
                         <td class="px-4 py-3">{{ $user->products_count }}</td>

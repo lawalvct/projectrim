@@ -77,6 +77,6 @@ class SellerProfileController extends Controller
         $profile->user_id = $request->user()->id;
         $profile->save();
 
-        return back()->with('success', 'Seller profile updated successfully.');
+        return back()->with('success', 'Creator profile updated successfully.');
     }
 }

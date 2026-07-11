@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -11,6 +12,7 @@ class AdminUserController extends Controller
 {
     public function index(Request $request)
     {
+        AdminSidebarBadges::markAsSeen('users');
         $query = User::query();
 
         if ($search = $request->input('search')) {

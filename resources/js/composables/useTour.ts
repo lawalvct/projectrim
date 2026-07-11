@@ -24,7 +24,7 @@ const dashboardSteps: TourStep[] = [
     {
         target: '[data-tour="explore"]',
         title: 'Explore Products',
-        body: 'Browse and search research projects shared by sellers across the platform. Find the work that fits your topic and download it instantly.',
+        body: 'Browse and search research projects shared by creators across the platform. Find the work that fits your topic and download it instantly.',
     },
     {
         target: '[data-tour="downloads"]',
@@ -39,12 +39,12 @@ const dashboardSteps: TourStep[] = [
     {
         target: '[data-tour="messages"]',
         title: 'Messages',
-        body: 'Chat with sellers about their work and receive important notifications from the platform here.',
+        body: 'Chat with creators about their work and receive important notifications from the platform here.',
     },
     {
         target: '[data-tour="apply-seller"]',
-        title: 'Become a Seller',
-        body: 'Want to earn? Click "Apply Now" to become a seller and start publishing and selling your own research projects.',
+        title: 'Become a Creator',
+        body: 'Want to earn? Click "Apply Now" to become a creator and start publishing and selling your own research projects.',
     },
     {
         target: '[data-tour="user-menu"]',

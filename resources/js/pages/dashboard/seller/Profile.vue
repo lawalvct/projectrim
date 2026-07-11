@@ -13,7 +13,7 @@ import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
-    { title: 'Seller Profile', href: '/dashboard/seller/profile' },
+    { title: 'Creator Profile', href: '/dashboard/seller/profile' },
 ];
 
 const props = defineProps<{
@@ -75,13 +75,13 @@ const flash = computed(() => (page.props.flash as any)?.success);
 </script>
 
 <template>
-    <Head title="Seller Profile" />
+    <Head title="Creator Profile" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
             <div>
-                <h1 class="text-2xl font-bold">Seller Profile</h1>
-                <p class="text-sm text-muted-foreground">Update your seller information and branding</p>
+                <h1 class="text-2xl font-bold">Creator Profile</h1>
+                <p class="text-sm text-muted-foreground">Update your creator information and branding</p>
             </div>
 
             <div v-if="flash" class="rounded-md bg-green-50 p-4 text-sm text-green-700 dark:bg-green-900/30 dark:text-green-300">

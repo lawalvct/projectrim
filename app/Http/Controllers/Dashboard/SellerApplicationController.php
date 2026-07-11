@@ -40,7 +40,7 @@ class SellerApplicationController extends Controller
                 'is_seller_approved' => true,
             ]);
 
-            return redirect()->route('dashboard')->with('status', 'You are now a seller! Start uploading your projects.');
+            return redirect()->route('dashboard')->with('status', 'You are now a creator! Start uploading your projects.');
         }
 
         // Manual approval — mark as pending
@@ -48,6 +48,6 @@ class SellerApplicationController extends Controller
             'is_seller_approved' => false,
         ]);
 
-        return redirect()->route('dashboard')->with('status', 'Your seller application has been submitted. We will review it shortly.');
+        return redirect()->route('dashboard')->with('status', 'Your creator application has been submitted. We will review it shortly.');
     }
 }

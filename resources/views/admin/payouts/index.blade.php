@@ -20,7 +20,7 @@
         <table class="w-full text-sm">
             <thead class="border-b bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
                 <tr>
-                    <th class="px-4 py-3">Seller</th>
+                    <th class="px-4 py-3">Creator</th>
                     <th class="px-4 py-3">Amount</th>
                     <th class="px-4 py-3">Payment Method</th>
                     <th class="px-4 py-3">Status</th>

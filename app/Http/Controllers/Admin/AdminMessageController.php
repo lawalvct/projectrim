@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\Message;
 
 class AdminMessageController extends Controller
 {
     public function index()
     {
+        AdminSidebarBadges::markAsSeen('messages');
         $messages = Message::with('product')
             ->latest()
             ->paginate(20);

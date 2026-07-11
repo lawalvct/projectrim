@@ -1,6 +1,6 @@
 @extends('admin.layouts.app')
 
-@section('title', 'Seller Applications')
+@section('title', 'Creator Applications')
 
 @section('content')
     <div class="rounded-xl border bg-white shadow-sm overflow-x-auto">

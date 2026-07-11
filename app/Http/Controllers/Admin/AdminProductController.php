@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -10,6 +11,7 @@ class AdminProductController extends Controller
 {
     public function index(Request $request)
     {
+        AdminSidebarBadges::markAsSeen('products');
         $query = Product::with('user', 'faculty', 'department');
 
         if ($search = $request->input('search')) {

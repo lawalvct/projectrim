@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\Review;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -11,6 +12,7 @@ class AdminReviewController extends Controller
 {
     public function index(Request $request)
     {
+        AdminSidebarBadges::markAsSeen('reviews');
         $query = Review::with('user', 'product');
 
         if ($search = $request->input('search')) {

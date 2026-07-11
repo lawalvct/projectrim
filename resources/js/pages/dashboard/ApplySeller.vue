@@ -10,11 +10,11 @@ defineProps<{
     isApproved: boolean;
 }>();
 
-const page = usePage();
+const page = usePage<{ flash?: { status?: string } }>();
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
-    { title: 'Become a Seller', href: '/dashboard/apply-seller' },
+    { title: 'Become a Creator', href: '/dashboard/apply-seller' },
 ];
 
 const form = useForm({});
@@ -25,13 +25,13 @@ const submit = () => {
 </script>
 
 <template>
-    <Head title="Become a Seller" />
+    <Head title="Become a Creator" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex h-full flex-1 items-start justify-center p-6">
             <Card class="w-full max-w-lg">
                 <CardHeader class="text-center">
-                    <CardTitle class="text-2xl">Become a Seller</CardTitle>
+                    <CardTitle class="text-2xl">Become a Creator</CardTitle>
                     <CardDescription>
                         Start sharing your research papers and academic projects with the world.
                     </CardDescription>
@@ -68,7 +68,7 @@ const submit = () => {
                             @click="submit"
                         >
                             <Spinner v-if="form.processing" />
-                            Apply to Become a Seller
+                            Apply to Become a Creator
                         </Button>
                     </div>
                 </CardContent>

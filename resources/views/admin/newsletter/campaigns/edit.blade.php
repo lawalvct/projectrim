@@ -18,7 +18,7 @@
 
                 <div class="mb-4">
                     <label class="mb-1 block text-sm font-medium">Body</label>
-                    <textarea id="body-editor" name="body" rows="10" class="w-full rounded-lg border px-3 py-2 text-sm">{{ old('body', $campaign->body) }}</textarea>
+                    <textarea name="body" rows="10" class="w-full rounded-lg border px-3 py-2 text-sm" data-rich-text data-placeholder="Write the newsletter content...">{{ old('body', $campaign->body) }}</textarea>
                     @error('body') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
@@ -27,10 +27,10 @@
                     <select name="audience" class="w-full rounded-lg border px-3 py-2 text-sm">
                         <option value="subscribers" {{ old('audience', $campaign->audience) === 'subscribers' ? 'selected' : '' }}>Subscribers</option>
                         <option value="users" {{ old('audience', $campaign->audience) === 'users' ? 'selected' : '' }}>Users</option>
-                        <option value="sellers" {{ old('audience', $campaign->audience) === 'sellers' ? 'selected' : '' }}>Sellers</option>
+                        <option value="sellers" {{ old('audience', $campaign->audience) === 'sellers' ? 'selected' : '' }}>Creators</option>
                         <option value="all" {{ old('audience', $campaign->audience) === 'all' ? 'selected' : '' }}>All</option>
                     </select>
-                    <p class="mt-1 text-xs text-gray-400">Subscribers = newsletter list. Users = registered users. Sellers = approved sellers. All = everyone combined.</p>
+                    <p class="mt-1 text-xs text-gray-400">Subscribers = newsletter list. Users = registered users. Creators = approved creators. All = everyone combined.</p>
                     @error('audience') <p class="mt-1 text-xs text-red-600">{{ $message }}</p> @enderror
                 </div>
 
@@ -44,16 +44,5 @@
 @endsection
 
 @push('scripts')
-    <script src="https://cdn.tiny.cloud/1/{{ config('services.tinymce.api_key', 'no-api-key') }}/tinymce/6/tinymce.min.js" referrerpolicy="origin"></script>
-    <script>
-        tinymce.init({
-            selector: '#body-editor',
-            height: 300,
-            menubar: false,
-            plugins: 'lists link autolink',
-            toolbar: 'undo redo | bold italic underline strikethrough | bullist numlist | link | removeformat',
-            branding: false,
-            promotion: false,
-        });
-    </script>
+    @vite('resources/js/admin-rich-text.ts')
 @endpush

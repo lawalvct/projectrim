@@ -74,7 +74,7 @@ onMounted(() => {
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">
-            <!-- Seller Stats -->
+            <!-- Creator Stats -->
             <template v-if="isSeller && sellerStats">
 
                 <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -118,7 +118,7 @@ onMounted(() => {
                         </CardHeader>
                         <CardContent>
                             <div class="text-2xl font-bold text-green-600 dark:text-green-400">{{ currencySymbol }}{{ fmt(sellerStats.total_earnings) }}</div>
-                            <Link href="/dashboard/seller" class="text-xs text-primary hover:underline mt-1 inline-block">Seller overview</Link>
+                            <Link href="/dashboard/seller" class="text-xs text-primary hover:underline mt-1 inline-block">Creator overview</Link>
                         </CardContent>
                     </Card>
                 </div>
@@ -167,7 +167,7 @@ onMounted(() => {
                 </Card>
             </div>
 
-            <!-- Become a Seller Banner -->
+            <!-- Become a Creator Banner -->
             <Card v-if="!isSeller" data-tour="apply-seller" class="border-primary/20 bg-primary/5">
                 <CardContent class="flex items-center justify-between p-6">
                     <div class="flex items-center gap-4">
@@ -175,7 +175,7 @@ onMounted(() => {
                             <Store class="h-6 w-6 text-primary" />
                         </div>
                         <div>
-                            <h3 class="font-semibold">Become a Seller</h3>
+                            <h3 class="font-semibold">Become a Creator</h3>
                             <p class="text-sm text-muted-foreground">Start selling your research projects and earn revenue.</p>
                         </div>
                     </div>

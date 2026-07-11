@@ -71,6 +71,10 @@ const user = computed(() => (page.props.auth as any)?.user);
 
 const isEditing = computed(() => !!props.product);
 const activeTab = ref<'general' | 'data'>('general');
+const orderedCountries = computed(() => [
+    ...props.countries.filter((country) => country.code === 'NG'),
+    ...props.countries.filter((country) => country.code !== 'NG'),
+]);
 
 const breadcrumbs = computed<BreadcrumbItem[]>(() => [
     { title: 'Dashboard', href: '/dashboard' },
@@ -178,7 +182,12 @@ function submit(status: 'draft' | 'pending') {
     };
 
     if (isEditing.value) {
-        form.put(url, options);
+        form
+            .transform((data) => ({
+                ...data,
+                _method: 'put',
+            }))
+            .post(url, options);
     } else {
         form.post(url, options);
     }
@@ -286,11 +295,14 @@ function submit(status: 'draft' | 'pending') {
                                 </p>
                             </div>
                             <div>
-                                <Label>Project File</Label>
+                                <Label>Project File *</Label>
                                 <FileUpload
                                     v-model="form.project_file"
                                     :existing-file="existingFile"
                                 />
+                                <p class="mt-1 text-xs text-muted-foreground">
+                                    {{ existingFile ? 'Upload a new file only if you want to replace the current one.' : 'Upload the main project file to continue.' }}
+                                </p>
                                 <p v-if="form.errors.project_file" class="mt-1 text-xs text-destructive">{{ form.errors.project_file }}</p>
                             </div>
                             <div>
@@ -428,7 +440,7 @@ function submit(status: 'draft' | 'pending') {
                                             <SelectValue placeholder="Select country" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem v-for="c in countries" :key="c.id" :value="c.name">
+                                            <SelectItem v-for="c in orderedCountries" :key="c.id" :value="c.name">
                                                 {{ c.name }}
                                             </SelectItem>
                                         </SelectContent>

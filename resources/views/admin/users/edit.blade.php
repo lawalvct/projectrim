@@ -28,7 +28,7 @@
                     <label class="mb-1 block text-sm font-medium">Role</label>
                     <select name="role" class="w-full rounded-lg border px-3 py-2 text-sm">
                         <option value="user" @selected(old('role', $user->role) === 'user')>User</option>
-                        <option value="seller" @selected(old('role', $user->role) === 'seller')>Seller</option>
+                        <option value="seller" @selected(old('role', $user->role) === 'seller')>Creator</option>
                         <option value="admin" @selected(old('role', $user->role) === 'admin')>Admin</option>
                     </select>
                     @error('role') <p class="mt-1 text-xs text-red-500">{{ $message }}</p> @enderror

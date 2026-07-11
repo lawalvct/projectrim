@@ -11,7 +11,7 @@ import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
-    { title: 'Seller Dashboard', href: '/dashboard/seller' },
+    { title: 'Creator Dashboard', href: '/dashboard/seller' },
 ];
 
 const props = defineProps<{
@@ -72,7 +72,7 @@ const maxMonthly = computed(() => Math.max(...props.monthlyRevenue.map(m => m.to
 </script>
 
 <template>
-    <Head title="Seller Overview" />
+    <Head title="Creator Overview" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">

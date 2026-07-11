@@ -11,7 +11,7 @@ import type { BreadcrumbItem } from '@/types';
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: dashboard() },
-    { title: 'Seller Orders', href: '/dashboard/seller/orders' },
+    { title: 'Creator Orders', href: '/dashboard/seller/orders' },
 ];
 
 const props = defineProps<{
@@ -68,7 +68,7 @@ const statusColor = (status: string) => {
 </script>
 
 <template>
-    <Head title="Seller Orders" />
+    <Head title="Creator Orders" />
 
     <AppLayout :breadcrumbs="breadcrumbs">
         <div class="flex flex-1 flex-col gap-6 p-4 md:p-6">

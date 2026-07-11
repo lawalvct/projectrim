@@ -137,7 +137,7 @@
                             <span class="text-xs text-gray-400 w-5">{{ $i + 1 }}.</span>
                             <a href="{{ route('admin.products.show', $product) }}" title="{{ $product->title }}" class="text-sm text-brand-light hover:underline truncate max-w-40">{{ $product->title }}</a>
                         </div>
-                        <span class="text-xs font-medium text-gray-500">₦{{ number_format($product->total_revenue, 2) }}</span>
+                        <span class="text-xs font-medium text-gray-500">{{ $settings['currency_symbol'] ?? '$' }}{{ number_format($product->total_revenue, 2) }}</span>
                     </div>
                 @endforeach
             </div>

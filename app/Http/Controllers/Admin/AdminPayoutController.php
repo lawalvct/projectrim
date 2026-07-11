@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\PaymentGiven;
 use App\Models\PayoutRequest;
 use Illuminate\Http\Request;
@@ -11,6 +12,7 @@ class AdminPayoutController extends Controller
 {
     public function index(Request $request)
     {
+        AdminSidebarBadges::markAsSeen('payouts');
         $query = PayoutRequest::with('user', 'paymentMethod');
 
         if ($status = $request->input('status')) {

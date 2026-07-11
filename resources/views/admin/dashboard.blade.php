@@ -43,7 +43,7 @@
             <h3 class="text-sm font-semibold text-amber-800">Pending Actions</h3>
             <div class="mt-2 flex flex-wrap gap-4 text-sm">
                 @if ($pending['seller_apps'] > 0)
-                    <a href="{{ route('admin.seller-applications.index') }}" class="text-amber-700 hover:underline">{{ $pending['seller_apps'] }} seller application(s)</a>
+                    <a href="{{ route('admin.seller-applications.index') }}" class="text-amber-700 hover:underline">{{ $pending['seller_apps'] }} creator application(s)</a>
                 @endif
                 @if ($pending['payouts'] > 0)
                     <a href="{{ route('admin.payouts.index') }}" class="text-amber-700 hover:underline">{{ $pending['payouts'] }} payout request(s)</a>

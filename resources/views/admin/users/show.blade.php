@@ -68,7 +68,7 @@
 
             @if ($user->sellerProfile)
                 <div class="rounded-xl border bg-white p-6 shadow-sm">
-                    <h3 class="mb-3 font-semibold">Seller Profile</h3>
+                    <h3 class="mb-3 font-semibold">Creator Profile</h3>
                     <div class="grid gap-3 text-sm sm:grid-cols-2">
                         <div><span class="text-gray-500">Bio:</span> {!! strip_tags($user->sellerProfile->bio ?? '—', '<b><i><u><br><p>') !!}
 </div>

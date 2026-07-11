@@ -154,7 +154,7 @@ const settings = computed(() => (page.props.settings as Record<string, string>) 
             </div>
         </section>
 
-        <!-- Become a Seller CTA -->
+        <!-- Become a Creator CTA -->
         <section class="bg-primary/5 py-16">
             <div class="container mx-auto px-4 text-center">
                 <h2 class="text-2xl font-bold">Share Your Research with the World</h2>
@@ -166,7 +166,7 @@ const settings = computed(() => (page.props.settings as Record<string, string>) 
                         <Button size="lg">Create Your Account</Button>
                     </Link>
                     <Link v-else href="/dashboard/apply-seller">
-                        <Button size="lg">Become a Seller</Button>
+                        <Button size="lg">Become a Creator</Button>
                     </Link>
                 </div>
             </div>

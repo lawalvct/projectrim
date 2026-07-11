@@ -3,12 +3,14 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
+use App\Support\AdminSidebarBadges;
 use App\Models\User;
 
 class AdminSellerApplicationController extends Controller
 {
     public function index()
     {
+        AdminSidebarBadges::markAsSeen('creator-applications');
         $applications = User::where('role', 'user')
             ->whereHas('sellerProfile')
             ->where('is_seller_approved', false)

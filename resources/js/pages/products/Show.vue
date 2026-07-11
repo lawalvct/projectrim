@@ -244,7 +244,7 @@ const hoverRating = ref(0);
 
 async function submitReview() {
     if (!auth.value?.user) {
-        router.visit('/login');
+        redirectGuestToLogin('Please log in to Review Project.');
         return;
     }
     if (reviewRating.value < 1 || reviewRating.value > 5) {
@@ -533,7 +533,11 @@ async function submitReport() {
                                     </Button>
                                 </div>
                                 <div v-else-if="!auth?.user" class="mb-6 rounded-lg border border-dashed p-4 text-center text-sm text-muted-foreground">
-                                    <Link href="/login" class="text-primary hover:underline">Sign in</Link> to leave a review.
+                                    <Link
+                                        href="/login"
+                                        class="text-primary hover:underline"
+                                        @click.prevent="redirectGuestToLogin('Please log in to Review Project.')"
+                                    >Sign in</Link> to leave a review.
                                 </div>
 
                                 <div v-if="!reviews.length" class="py-8 text-center text-muted-foreground">

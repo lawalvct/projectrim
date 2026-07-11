@@ -80,17 +80,17 @@
         </div>
     </div>
 
-    {{-- Top Sellers --}}
+    {{-- Top Creators --}}
     <div class="rounded-xl border bg-white shadow-sm">
         <div class="border-b px-4 py-3">
-            <h3 class="text-sm font-semibold">Top Sellers</h3>
+            <h3 class="text-sm font-semibold">Top Creators</h3>
         </div>
         <div class="overflow-x-auto">
             <table class="w-full text-sm">
                 <thead class="border-b bg-gray-50 text-left text-xs font-medium uppercase text-gray-500">
                     <tr>
                         <th class="px-4 py-3">#</th>
-                        <th class="px-4 py-3">Seller</th>
+                        <th class="px-4 py-3">Creator</th>
                         <th class="px-4 py-3">Products</th>
                         <th class="px-4 py-3">Revenue</th>
                     </tr>
