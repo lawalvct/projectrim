@@ -57,7 +57,15 @@ const dashboardSteps: TourStep[] = [
     },
 ];
 
+function isMobileViewport() {
+    return typeof window !== 'undefined' && window.matchMedia('(max-width: 768px)').matches;
+}
+
 function start(tourSteps: TourStep[] = dashboardSteps) {
+    if (isMobileViewport()) {
+        return;
+    }
+
     steps.value = tourSteps;
     currentIndex.value = 0;
     isActive.value = true;
