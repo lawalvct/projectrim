@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Dashboard;
 
 use App\Http\Controllers\Controller;
 use App\Models\Setting;
+use App\Models\SellerProfile;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -32,7 +33,7 @@ class SellerApplicationController extends Controller
             return redirect()->route('dashboard');
         }
 
-        $autoApprove = Setting::getValue('auto_approve_sellers', 'true') === 'true';
+        $autoApprove = filter_var(Setting::getValue('auto_approve_sellers', true), FILTER_VALIDATE_BOOLEAN);
 
         if ($autoApprove) {
             $user->update([
@@ -43,7 +44,9 @@ class SellerApplicationController extends Controller
             return redirect()->route('dashboard')->with('status', 'You are now a creator! Start uploading your projects.');
         }
 
-        // Manual approval — mark as pending
+        // Manual approval: create an application record and mark it as pending.
+        SellerProfile::firstOrCreate(['user_id' => $user->id]);
+
         $user->update([
             'is_seller_approved' => false,
         ]);
