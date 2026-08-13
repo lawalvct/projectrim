@@ -23,6 +23,8 @@ Route::middleware(['auth', 'role:admin'])->prefix('admin')->name('admin.')->grou
     Route::get('/', [AdminDashboardController::class, 'index'])->name('dashboard');
 
     // Users
+    Route::get('users/import/template', [AdminUserController::class, 'downloadImportTemplate'])->name('users.import-template');
+    Route::post('users/import', [AdminUserController::class, 'import'])->name('users.import');
     Route::post('users/{user}/impersonate', [AdminUserController::class, 'impersonate'])->name('users.impersonate');
     Route::resource('users', AdminUserController::class)->only(['index', 'show', 'edit', 'update', 'destroy']);
 
