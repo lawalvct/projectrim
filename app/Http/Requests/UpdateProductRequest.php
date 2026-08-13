@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdateProductRequest extends FormRequest
 {
@@ -11,6 +12,7 @@ class UpdateProductRequest extends FormRequest
     public function authorize(): bool
     {
         $product = $this->route('product');
+
         return $product && $product->user_id === $this->user()->id;
     }
 
@@ -39,9 +41,10 @@ class UpdateProductRequest extends FormRequest
             'price' => ['nullable', 'numeric', 'min:0'],
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
-            'project_file' => [$hasExistingProjectFile ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:' . self::MAX_UPLOAD_KILOBYTES],
-            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:' . self::MAX_UPLOAD_KILOBYTES],
-            'remove_video' => ['nullable', 'boolean'],
+            'project_file' => [$hasExistingProjectFile ? 'nullable' : 'required', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:'.self::MAX_UPLOAD_KILOBYTES],
+            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:'.self::MAX_UPLOAD_KILOBYTES, 'prohibits:preview_video_upload_token,remove_video'],
+            'preview_video_upload_token' => ['nullable', 'uuid', 'prohibits:preview_video,remove_video', Rule::exists('product_video_uploads', 'token')->where(fn ($query) => $query->where('user_id', $this->user()->id)->where('status', 'completed')->where('expires_at', '>', now()))],
+            'remove_video' => ['nullable', 'boolean', 'prohibits:preview_video,preview_video_upload_token'],
             'remove_images' => ['nullable', 'array'],
             'remove_images.*' => ['integer', 'exists:product_images,id'],
             'co_authors' => ['nullable', 'array', 'max:10'],

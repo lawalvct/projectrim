@@ -2,8 +2,10 @@
 
 namespace App\Providers;
 
+use App\Contracts\VideoProcessor;
 use App\Http\Responses\LoginResponse;
 use App\Listeners\MergeGuestCartOnLogin;
+use App\Services\Video\FfmpegVideoProcessor;
 use Carbon\CarbonImmutable;
 use Illuminate\Auth\Events\Login;
 use Illuminate\Support\Facades\Date;
@@ -23,6 +25,7 @@ class AppServiceProvider extends ServiceProvider
     public function register(): void
     {
         $this->app->singleton(LoginResponseContract::class, LoginResponse::class);
+        $this->app->singleton(VideoProcessor::class, FfmpegVideoProcessor::class);
     }
 
     /**

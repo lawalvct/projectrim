@@ -24,6 +24,7 @@ use App\Http\Controllers\SearchController;
 use App\Http\Controllers\Seller\PaymentHistoryController;
 use App\Http\Controllers\Seller\PaymentMethodController;
 use App\Http\Controllers\Seller\PayoutRequestController;
+use App\Http\Controllers\Seller\ProductVideoUploadController;
 use App\Http\Controllers\Seller\SellerOrderController;
 use App\Http\Controllers\Seller\SellerOverviewController;
 use App\Http\Controllers\Seller\SellerProductController;
@@ -96,6 +97,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('dashboard/orders', [UserOrderController::class, 'index'])->name('dashboard.orders');
     Route::get('dashboard/messages', [UserMessageController::class, 'index'])->name('dashboard.messages');
     Route::patch('dashboard/messages/{id}/read', [UserMessageController::class, 'markAsRead'])->name('dashboard.messages.read');
+    Route::post('dashboard/messages/{recipient}/reply', [UserMessageController::class, 'reply'])
+        ->whereNumber('recipient')
+        ->middleware('throttle:10,1')
+        ->name('dashboard.messages.reply');
     Route::post('dashboard/messages/mark-all-read', [UserMessageController::class, 'markAllAsRead'])->name('dashboard.messages.mark-all-read');
     Route::get('dashboard/explore', [ExploreController::class, 'index'])->name('dashboard.explore');
 
@@ -110,6 +115,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('profile', [SellerProfileController::class, 'update'])->name('profile.update');
         Route::patch('products/{product}/toggle-publication', [SellerProductController::class, 'togglePublication'])->name('products.toggle-publication');
         Route::get('products/{product}/downloads', [SellerProductController::class, 'downloads'])->name('products.downloads');
+        Route::middleware('throttle:120,1')->group(function () {
+            Route::post('product-video-uploads', [ProductVideoUploadController::class, 'initialize'])->name('product-video-uploads.initialize');
+            Route::match(['put', 'post'], 'product-video-uploads/{token}/chunks/{index}', [ProductVideoUploadController::class, 'uploadChunk'])->whereNumber('index')->name('product-video-uploads.chunks.store');
+            Route::post('product-video-uploads/{token}/complete', [ProductVideoUploadController::class, 'complete'])->name('product-video-uploads.complete');
+            Route::get('product-video-uploads/{token}', [ProductVideoUploadController::class, 'show'])->name('product-video-uploads.show');
+            Route::delete('product-video-uploads/{token}', [ProductVideoUploadController::class, 'destroy'])->name('product-video-uploads.destroy');
+        });
         Route::resource('products', SellerProductController::class);
         Route::get('orders', [SellerOrderController::class, 'index'])->name('orders.index');
         Route::get('transactions', [SellerTransactionController::class, 'index'])->name('transactions.index');

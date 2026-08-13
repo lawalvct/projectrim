@@ -1,13 +1,13 @@
 <script setup lang="ts">
 import { Head, Link, router } from '@inertiajs/vue3';
-import AppLayout from '@/layouts/AppLayout.vue';
-import { Button } from '@/components/ui/button';
+import axios from 'axios';
+import { computed, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogClose, DialogFooter } from '@/components/ui/dialog';
+import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
-import { ref } from 'vue';
-import axios from 'axios';
 
 const props = defineProps<{
     products: {
@@ -25,12 +25,39 @@ const props = defineProps<{
             images: Array<{ id: number; path: string }>;
             downloads_count_aggregate?: number;
             reviews_count?: number;
+            preview_video_status?: string | null;
         }>;
         links: Array<{ url: string | null; label: string; active: boolean }>;
         current_page: number;
         last_page: number;
     };
 }>();
+
+const hasProcessingVideos = computed(() =>
+    props.products.data.some((product) => ['queued', 'processing'].includes(product.preview_video_status ?? '')),
+);
+let refreshTimer: ReturnType<typeof window.setInterval> | null = null;
+
+function stopVideoStatusPolling() {
+    if (refreshTimer) {
+        window.clearInterval(refreshTimer);
+        refreshTimer = null;
+    }
+}
+
+function syncVideoStatusPolling() {
+    stopVideoStatusPolling();
+
+    if (hasProcessingVideos.value) {
+        refreshTimer = window.setInterval(() => {
+            router.reload({ only: ['products'] });
+        }, 10000);
+    }
+}
+
+onMounted(syncVideoStatusPolling);
+onBeforeUnmount(stopVideoStatusPolling);
+watch(hasProcessingVideos, syncVideoStatusPolling);
 
 const breadcrumbs: BreadcrumbItem[] = [
     { title: 'Dashboard', href: '/dashboard' },
@@ -60,6 +87,10 @@ function togglePublication(id: number, status: string) {
     }
 }
 
+function paginationLabel(label: string) {
+    return label.replaceAll('&laquo;', '«').replaceAll('&raquo;', '»');
+}
+
 // --- Downloads dialog ---
 const downloadsOpen = ref(false);
 const downloadsLoading = ref(false);
@@ -71,6 +102,7 @@ async function showDownloads(productId: number, title: string) {
     downloadsList.value = [];
     downloadsOpen.value = true;
     downloadsLoading.value = true;
+
     try {
         const { data } = await axios.get(`/dashboard/seller/products/${productId}/downloads`);
         downloadsList.value = data.downloads;
@@ -128,7 +160,13 @@ async function showDownloads(productId: number, title: string) {
                                     <h3 class="font-semibold truncate">{{ product.title }}</h3>
                                     <p v-if="product.faculty" class="text-xs text-muted-foreground">{{ product.faculty.name }}</p>
                                 </div>
-                                <Badge :variant="statusColor(product.status)">{{ product.status }}</Badge>
+                                <div class="flex flex-wrap justify-end gap-1">
+                                    <Badge :variant="statusColor(product.status)">{{ product.status }}</Badge>
+                                    <Badge v-if="['queued', 'processing'].includes(product.preview_video_status ?? '')" variant="secondary">
+                                        Video {{ product.preview_video_status }}
+                                    </Badge>
+                                    <Badge v-else-if="product.preview_video_status === 'failed'" variant="destructive">Video failed</Badge>
+                                </div>
                             </div>
                             <div class="mt-2 flex items-center gap-4 text-xs text-muted-foreground">
                                 <span>{{ product.is_paid ? `$${product.price}` : 'Free' }}</span>
@@ -160,9 +198,10 @@ async function showDownloads(productId: number, title: string) {
                             :href="link.url"
                             class="rounded border px-3 py-1 text-sm"
                             :class="link.active ? 'bg-primary text-primary-foreground' : 'hover:bg-muted'"
-                            v-html="link.label"
-                        />
-                        <span v-else class="rounded border px-3 py-1 text-sm text-muted-foreground" v-html="link.label" />
+                        >
+                            {{ paginationLabel(link.label) }}
+                        </Link>
+                        <span v-else class="rounded border px-3 py-1 text-sm text-muted-foreground">{{ paginationLabel(link.label) }}</span>
                     </template>
                 </div>
             </div>

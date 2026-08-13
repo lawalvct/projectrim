@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Seller;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreProductRequest;
 use App\Http\Requests\UpdateProductRequest;
+use App\Jobs\ProcessProductPreviewVideo;
 use App\Jobs\SendNewProductNotification;
 use App\Models\Country;
 use App\Models\Download;
@@ -13,6 +14,7 @@ use App\Models\Product;
 use App\Models\ProductAuthor;
 use App\Models\ProductFile;
 use App\Models\ProductImage;
+use App\Models\ProductVideoUpload;
 use App\Models\Setting;
 use App\Models\Tag;
 use Illuminate\Http\JsonResponse;
@@ -86,11 +88,10 @@ class SellerProductController extends Controller
                 'published_at' => now(),
             ]);
 
-            // Handle preview video
-            if ($request->hasFile('preview_video')) {
-                $video = $request->file('preview_video');
-                $videoPath = $video->store('products/videos', 'public');
-                $product->update(['preview_video' => $videoPath]);
+            if (! empty($validated['preview_video_upload_token'])) {
+                $this->claimCompletedVideoUpload($product, $validated['preview_video_upload_token']);
+            } elseif ($request->hasFile('preview_video')) {
+                $this->stageDirectPreviewVideo($product, $request);
             }
 
             // Handle images
@@ -221,20 +222,12 @@ class SellerProductController extends Controller
                 'status' => $validated['status'] ?? $product->status,
             ]);
 
-            // Handle preview video removal
-            if (! empty($validated['remove_video']) && $product->preview_video) {
-                Storage::disk('public')->delete($product->preview_video);
-                $product->update(['preview_video' => null]);
-            }
-
-            // Handle preview video upload
-            if ($request->hasFile('preview_video')) {
-                if ($product->preview_video) {
-                    Storage::disk('public')->delete($product->preview_video);
-                }
-                $video = $request->file('preview_video');
-                $videoPath = $video->store('products/videos', 'public');
-                $product->update(['preview_video' => $videoPath]);
+            if (! empty($validated['remove_video'])) {
+                $this->removePreviewVideo($product);
+            } elseif (! empty($validated['preview_video_upload_token'])) {
+                $this->claimCompletedVideoUpload($product, $validated['preview_video_upload_token']);
+            } elseif ($request->hasFile('preview_video')) {
+                $this->stageDirectPreviewVideo($product, $request);
             }
 
             // Remove specified images
@@ -316,11 +309,18 @@ class SellerProductController extends Controller
         foreach ($product->files as $file) {
             Storage::disk('public')->delete($file->file_path);
         }
-        if ($product->preview_video) {
-            Storage::disk('public')->delete($product->preview_video);
-        }
+        $previewVideo = $product->preview_video;
+        $previewSource = $product->preview_video_source_path;
 
         $product->delete();
+        DB::afterCommit(function () use ($previewVideo, $previewSource) {
+            if ($previewVideo) {
+                Storage::disk((string) config('video.output_disk', 'public'))->delete($previewVideo);
+            }
+            if ($previewSource) {
+                Storage::disk((string) config('video.source_disk', 'local'))->delete($previewSource);
+            }
+        });
 
         return redirect()->route('seller.products.index')
             ->with('status', 'Product deleted successfully.');
@@ -369,6 +369,57 @@ class SellerProductController extends Controller
             ]);
 
         return response()->json(['downloads' => $downloads]);
+    }
+
+    private function claimCompletedVideoUpload(Product $product, string $token): void
+    {
+        $upload = ProductVideoUpload::query()->where('token', $token)->where('user_id', auth()->id())->where('status', 'completed')->where('expires_at', '>', now())->lockForUpdate()->firstOrFail();
+        $upload->forceFill(['product_id' => $product->id, 'status' => 'claimed', 'claimed_at' => now()])->save();
+        $this->queuePreviewVideo($product, $upload->source_path, $upload->token);
+    }
+
+    private function stageDirectPreviewVideo(Product $product, StoreProductRequest|UpdateProductRequest $request): void
+    {
+        $video = $request->file('preview_video');
+        $token = (string) Str::uuid();
+        $path = $video->storeAs(trim((string) config('video.upload_directory', 'product-video-uploads'), '/').'/direct/'.$token, 'source.'.$video->extension(), (string) config('video.source_disk', 'local'));
+        $upload = ProductVideoUpload::create(['user_id' => auth()->id(), 'product_id' => $product->id, 'token' => $token, 'original_name' => $video->getClientOriginalName(), 'mime_type' => $video->getMimeType(), 'expected_size' => $video->getSize(), 'received_size' => $video->getSize(), 'total_chunks' => 1, 'uploaded_chunks' => [0], 'source_path' => $path, 'status' => 'claimed', 'completed_at' => now(), 'claimed_at' => now(), 'expires_at' => now()->addHours(max(1, (int) config('video.upload_ttl_hours', 24)))]);
+        $this->queuePreviewVideo($product, $path, $upload->token);
+    }
+
+    private function queuePreviewVideo(Product $product, string $sourcePath, string $token): void
+    {
+        $previousSource = $product->preview_video_source_path;
+        $previousToken = $product->preview_video_processing_token;
+        $product->update(['preview_video_source_path' => $sourcePath, 'preview_video_processing_token' => $token, 'preview_video_status' => 'queued', 'preview_video_error' => null, 'preview_video_processed_at' => null]);
+        if (($previousSource && $previousSource !== $sourcePath) || ($previousToken && $previousToken !== $token)) {
+            ProductVideoUpload::query()
+                ->where('product_id', $product->id)
+                ->where('token', $previousToken)
+                ->delete();
+            DB::afterCommit(function () use ($previousSource): void {
+                if ($previousSource) {
+                    Storage::disk((string) config('video.source_disk', 'local'))->delete($previousSource);
+                }
+            });
+        }
+        ProcessProductPreviewVideo::dispatch($product->id)->afterCommit();
+    }
+
+    private function removePreviewVideo(Product $product): void
+    {
+        $previewVideo = $product->preview_video;
+        $sourcePath = $product->preview_video_source_path;
+        $product->videoUploads()->delete();
+        $product->update(['preview_video' => null, 'preview_video_source_path' => null, 'preview_video_processing_token' => null, 'preview_video_status' => 'none', 'preview_video_error' => null, 'preview_video_processed_at' => null]);
+        DB::afterCommit(function () use ($previewVideo, $sourcePath) {
+            if ($previewVideo) {
+                Storage::disk((string) config('video.output_disk', 'public'))->delete($previewVideo);
+            }
+            if ($sourcePath) {
+                Storage::disk((string) config('video.source_disk', 'local'))->delete($sourcePath);
+            }
+        });
     }
 
     private function syncCoAuthors(Product $product, array $coAuthors): void

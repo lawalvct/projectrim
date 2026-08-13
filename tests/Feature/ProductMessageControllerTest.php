@@ -44,6 +44,7 @@ test('a stored product message returns success and queues its email notification
     $this->assertDatabaseHas('messages', [
         'id' => $messageId,
         'product_id' => $product->id,
+        'sender_user_id' => $sender->id,
         'sender_email' => $sender->email,
     ]);
     $this->assertDatabaseHas('message_recipients', [

@@ -27,16 +27,17 @@ class ProductMessageController extends Controller
             ], 401);
         }
 
-        $request->validate([
-            'sender_name' => 'required|string|max:255',
-            'sender_email' => 'required|email|max:255',
+        $validated = $request->validate([
             'subject' => 'required|string|max:255',
             'body' => 'required|string|max:5000',
             'honeypot' => 'present|max:0', // bot prevention
         ]);
 
+        $sender = $request->user();
+
         // Rate limiting: max 5 messages per sender per hour.
-        $recentCount = Message::where('sender_email', $request->input('sender_email'))
+        $recentCount = Message::where('sender_user_id', $sender->id)
+            ->whereNull('parent_message_id')
             ->where('created_at', '>=', now()->subHour())
             ->count();
 
@@ -46,13 +47,14 @@ class ProductMessageController extends Controller
             ], 429);
         }
 
-        [$message, $recipientUserIds] = DB::transaction(function () use ($request, $product) {
+        [$message, $recipientUserIds] = DB::transaction(function () use ($sender, $validated, $product) {
             $message = Message::create([
                 'product_id' => $product->id,
-                'sender_name' => $request->input('sender_name'),
-                'sender_email' => $request->input('sender_email'),
-                'subject' => $request->input('subject'),
-                'body' => $request->input('body'),
+                'sender_user_id' => $sender->id,
+                'sender_name' => $sender->name,
+                'sender_email' => $sender->email,
+                'subject' => $validated['subject'],
+                'body' => $validated['body'],
             ]);
 
             // Send to every distinct author, or the product owner when the

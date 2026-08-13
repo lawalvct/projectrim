@@ -11,6 +11,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { useProductVideoUpload } from '@/composables/useProductVideoUpload';
 import AppLayout from '@/layouts/AppLayout.vue';
 import type { BreadcrumbItem } from '@/types';
 
@@ -47,6 +48,7 @@ interface ExistingProduct {
     is_paid: boolean;
     status: string;
     preview_video: string | null;
+    preview_video_status?: string | null;
     images: Array<{ id: number; path: string }>;
     files: Array<{ id: number; file_name: string; file_size: number; file_type: string }>;
     tags: Array<{ id: number; name: string }>;
@@ -102,7 +104,7 @@ const form = useForm({
     price: props.product?.price ?? 0,
     images: [] as File[],
     project_file: null as File | null,
-    preview_video: null as File | null,
+    preview_video_upload_token: '',
     remove_video: false,
     remove_images: [] as number[],
     co_authors: (props.product?.authors?.filter((a) => !a.is_primary).map((a) => ({
@@ -114,6 +116,55 @@ const form = useForm({
     status: props.product?.status ?? 'draft',
     notify_users: false,
 });
+
+const previewVideoInput = ref<HTMLInputElement | null>(null);
+const videoUpload = useProductVideoUpload();
+const selectedVideoFile = videoUpload.file;
+const videoProgress = videoUpload.progress;
+const videoError = videoUpload.error;
+const videoCurrentChunk = videoUpload.currentChunk;
+const videoTotalChunks = videoUpload.totalChunks;
+const videoIsComplete = videoUpload.isComplete;
+const videoSubmissionBlocked = computed(() => videoUpload.requiresCompletion.value);
+
+async function selectPreviewVideo(event: Event) {
+    const selectedFile = (event.target as HTMLInputElement).files?.[0];
+
+    if (!selectedFile) {
+return;
+}
+
+    form.preview_video_upload_token = '';
+    form.remove_video = false;
+    await videoUpload.start(selectedFile);
+
+    if (videoUpload.isComplete.value && videoUpload.token.value) {
+form.preview_video_upload_token = videoUpload.token.value;
+}
+}
+
+async function retryPreviewVideo() {
+    form.preview_video_upload_token = '';
+    await videoUpload.retry();
+
+    if (videoUpload.isComplete.value && videoUpload.token.value) {
+form.preview_video_upload_token = videoUpload.token.value;
+}
+}
+
+async function cancelPreviewVideo() {
+    await videoUpload.cancel();
+    form.preview_video_upload_token = '';
+
+    if (previewVideoInput.value) {
+previewVideoInput.value.value = '';
+}
+}
+
+async function removeCurrentVideo() {
+    await cancelPreviewVideo();
+    form.remove_video = true;
+}
 
 // Filtered departments based on selected faculty
 const filteredDepartments = computed(() => {
@@ -169,16 +220,40 @@ const degreeOptions = [
     'Doctorate Degree',
 ];
 
+const uploadProgress = ref(0);
+
 function submit(status: 'draft' | 'pending') {
+    if (videoSubmissionBlocked.value) {
+return;
+}
+
     form.status = status;
 
     const url = isEditing.value
         ? `/dashboard/seller/products/${props.product!.id}`
         : '/dashboard/seller/products';
 
-    const options = {
+    // reset progress when starting
+    uploadProgress.value = 0;
+
+    const baseOptions = {
         forceFormData: true,
         preserveScroll: true,
+    };
+
+    const options = {
+        ...baseOptions,
+        // Inertia exposes an onProgress callback for uploads
+        onProgress: (progress: any) => {
+            // Typical shape: { percentage: number }
+            if (progress && typeof progress.percentage === 'number') {
+                uploadProgress.value = Math.round(progress.percentage);
+            } else if (progress && progress.detail && typeof progress.detail.loaded === 'number' && typeof progress.detail.total === 'number') {
+                // Fallback for different progress event shapes
+                const pct = Math.round((progress.detail.loaded / progress.detail.total) * 100);
+                uploadProgress.value = Math.min(100, Math.max(0, pct));
+            }
+        },
     };
 
     if (isEditing.value) {
@@ -187,9 +262,9 @@ function submit(status: 'draft' | 'pending') {
                 ...data,
                 _method: 'put',
             }))
-            .post(url, options);
+            .post(url, options as any);
     } else {
-        form.post(url, options);
+        form.post(url, options as any);
     }
 }
 </script>
@@ -307,27 +382,45 @@ function submit(status: 'draft' | 'pending') {
                             </div>
                             <div>
                                 <Label>Preview Video</Label>
-                                <p class="mb-2 text-xs text-muted-foreground">Upload a short video describing and showing the workings of your research (MP4, WebM or MOV, max 50 MB).</p>
-                                <div v-if="isEditing && product?.preview_video && !form.remove_video && !form.preview_video" class="mb-2 flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
+                                <p class='mb-2 text-xs text-muted-foreground'>MP4, WebM or MOV, up to 400 MB and 20 minutes. Maximum 1080p; the final MP4 is automatically compressed below 100 MB.</p>
+                                <div v-if="isEditing && product?.preview_video && !form.remove_video" class="mb-2 flex items-center gap-3 rounded-lg border bg-muted/50 p-3">
                                     <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-primary" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                                         <path stroke-linecap="round" stroke-linejoin="round" d="m15.75 10.5 4.72-4.72a.75.75 0 0 1 1.28.53v11.38a.75.75 0 0 1-1.28.53l-4.72-4.72M4.5 18.75h9a2.25 2.25 0 0 0 2.25-2.25v-9a2.25 2.25 0 0 0-2.25-2.25h-9A2.25 2.25 0 0 0 2.25 7.5v9a2.25 2.25 0 0 0 2.25 2.25Z" />
                                     </svg>
                                     <span class="flex-1 truncate text-sm">Current video uploaded</span>
-                                    <button type="button" class="text-xs text-destructive hover:underline" @click="form.remove_video = true">
+                                    <button type="button" class="text-xs text-destructive hover:underline" @click="removeCurrentVideo">
                                         Remove
                                     </button>
                                 </div>
-                                <div v-if="form.remove_video && !form.preview_video" class="mb-2 rounded-lg border border-dashed border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
+                                <div v-if="form.remove_video && !selectedVideoFile" class="mb-2 rounded-lg border border-dashed border-amber-500 bg-amber-50 px-3 py-2 text-xs text-amber-700 dark:bg-amber-950/20 dark:text-amber-400">
                                     Video will be removed on save.
                                     <button type="button" class="ml-1 underline" @click="form.remove_video = false">Undo</button>
                                 </div>
                                 <input
+                                    ref="previewVideoInput"
                                     type="file"
                                     accept="video/mp4,video/webm,video/quicktime"
                                     class="w-full rounded-md border bg-background px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-primary"
-                                    @change="(e: Event) => { const f = (e.target as HTMLInputElement).files?.[0]; if (f) { form.preview_video = f; form.remove_video = false; } }"
+                                    @change="selectPreviewVideo"
                                 />
-                                <p v-if="form.errors.preview_video" class="mt-1 text-xs text-destructive">{{ form.errors.preview_video }}</p>
+                                <div v-if="selectedVideoFile" class="mt-3 rounded-lg border bg-muted/30 p-3 text-xs">
+                                    <div class="flex items-center justify-between gap-3">
+                                        <span class="truncate font-medium">{{ selectedVideoFile.name }}</span>
+                                        <span>{{ videoProgress }}%</span>
+                                    </div>
+                                    <div class="mt-2 h-2 overflow-hidden rounded-full bg-muted">
+                                        <div class="h-full bg-primary transition-all" :style="{ width: `${videoProgress}%` }" />
+                                    </div>
+                                    <p v-if="videoIsComplete" class="mt-2 text-green-700 dark:text-green-400">Upload complete. Conversion will continue in the background after saving.</p>
+                                    <p v-else-if="videoError" class="mt-2 text-destructive">{{ videoError }}</p>
+                                    <p v-else class="mt-2 text-muted-foreground">Uploading chunk {{ videoCurrentChunk }} of {{ videoTotalChunks || '...' }}</p>
+                                    <p v-if="isEditing && product?.preview_video" class="mt-2 text-muted-foreground">Your current video stays available until the replacement is ready.</p>
+                                    <div class="mt-3 flex gap-2">
+                                        <Button v-if="videoError" type="button" size="sm" variant="outline" @click="retryPreviewVideo">Retry</Button>
+                                        <Button type="button" size="sm" variant="ghost" @click="cancelPreviewVideo">Cancel and reselect</Button>
+                                    </div>
+                                </div>
+                                <p v-if="form.errors.preview_video_upload_token" class="mt-1 text-xs text-destructive">{{ form.errors.preview_video_upload_token }}</p>
                             </div>
                         </CardContent>
                     </Card>
@@ -485,7 +578,11 @@ function submit(status: 'draft' | 'pending') {
                 <!-- Form Actions -->
                 <div class="mt-6 flex items-center justify-between rounded-lg border bg-muted/50 p-4">
                     <div class="text-sm text-muted-foreground">
-                        <span v-if="form.processing">Saving...</span>
+                        <template v-if="form.processing">
+                            <span v-if="uploadProgress > 0">{{ uploadProgress }}% Submitting</span>
+                            <span v-else>Submitting...</span>
+                        </template>
+                        <span v-else-if="videoSubmissionBlocked">Finish the preview video upload before saving.</span>
                         <span v-else-if="isEditing">Status: {{ product?.status }}</span>
                     </div>
                     <div class="flex gap-3">
@@ -503,7 +600,7 @@ function submit(status: 'draft' | 'pending') {
                         <template v-else>
                             <Button
                                 type="button"
-                                :disabled="form.processing"
+                                :disabled="form.processing || videoSubmissionBlocked"
                                 @click="submit('pending')"
                             >
                                 Submit and Publish

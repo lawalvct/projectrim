@@ -22,6 +22,21 @@ class Message extends Model
         return $this->belongsTo(Product::class);
     }
 
+    public function sender(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'sender_user_id');
+    }
+
+    public function parent(): BelongsTo
+    {
+        return $this->belongsTo(self::class, 'parent_message_id');
+    }
+
+    public function replies(): HasMany
+    {
+        return $this->hasMany(self::class, 'parent_message_id')->orderBy('created_at');
+    }
+
     public function recipients(): HasMany
     {
         return $this->hasMany(MessageRecipient::class);

@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class StoreProductRequest extends FormRequest
 {
@@ -35,8 +36,9 @@ class StoreProductRequest extends FormRequest
             'price' => ['nullable', 'numeric', 'min:0'],
             'images' => ['nullable', 'array', 'max:10'],
             'images.*' => ['image', 'mimes:jpg,jpeg,png,webp', 'max:5000'],
-            'project_file' => ['required', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:' . self::MAX_UPLOAD_KILOBYTES],
-            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:' . self::MAX_UPLOAD_KILOBYTES],
+            'project_file' => ['required', 'file', 'mimes:pdf,doc,docx,ppt,pptx,xls,xlsx,zip', 'max:'.self::MAX_UPLOAD_KILOBYTES],
+            'preview_video' => ['nullable', 'file', 'mimes:mp4,webm,mov', 'max:'.self::MAX_UPLOAD_KILOBYTES, 'prohibits:preview_video_upload_token'],
+            'preview_video_upload_token' => ['nullable', 'uuid', 'prohibits:preview_video', Rule::exists('product_video_uploads', 'token')->where(fn ($query) => $query->where('user_id', $this->user()->id)->where('status', 'completed')->where('expires_at', '>', now()))],
             'co_authors' => ['nullable', 'array', 'max:10'],
             'co_authors.*.user_id' => ['required', 'exists:users,id'],
             'co_authors.*.contribution_percentage' => ['required', 'numeric', 'min:1', 'max:99'],

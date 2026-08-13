@@ -11,6 +11,12 @@ class Product extends Model
 {
     protected $guarded = ['id'];
 
+    protected $hidden = [
+        'preview_video_source_path',
+        'preview_video_processing_token',
+        'preview_video_error',
+    ];
+
     protected function casts(): array
     {
         return [
@@ -62,6 +68,11 @@ class Product extends Model
     public function files(): HasMany
     {
         return $this->hasMany(ProductFile::class);
+    }
+
+    public function videoUploads(): HasMany
+    {
+        return $this->hasMany(ProductVideoUpload::class);
     }
 
     public function tags(): BelongsToMany

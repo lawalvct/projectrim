@@ -49,6 +49,15 @@ return [
             'after_commit' => false,
         ],
 
+        'video_database' => [
+            'driver' => 'database',
+            'connection' => env('VIDEO_DB_QUEUE_CONNECTION', env('DB_QUEUE_CONNECTION')),
+            'table' => env('VIDEO_DB_QUEUE_TABLE', 'jobs'),
+            'queue' => env('VIDEO_QUEUE', 'videos'),
+            'retry_after' => (int) env('VIDEO_QUEUE_RETRY_AFTER', 7500),
+            'after_commit' => true,
+        ],
+
         'beanstalkd' => [
             'driver' => 'beanstalkd',
             'host' => env('BEANSTALKD_QUEUE_HOST', 'localhost'),

@@ -3,9 +3,11 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\AdminSidebarBadges;
 use App\Models\Product;
+use App\Support\AdminSidebarBadges;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Storage;
 
 class AdminProductController extends Controller
 {
@@ -71,7 +73,17 @@ class AdminProductController extends Controller
 
     public function destroy(Product $product)
     {
+        $previewVideo = $product->preview_video;
+        $previewSource = $product->preview_video_source_path;
         $product->delete();
+        DB::afterCommit(function () use ($previewVideo, $previewSource): void {
+            if ($previewVideo) {
+                Storage::disk((string) config('video.output_disk', 'public'))->delete($previewVideo);
+            }
+            if ($previewSource) {
+                Storage::disk((string) config('video.source_disk', 'local'))->delete($previewSource);
+            }
+        });
 
         return redirect()->route('admin.products.index')->with('success', 'Product deleted.');
     }
