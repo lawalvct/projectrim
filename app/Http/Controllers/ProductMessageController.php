@@ -9,6 +9,8 @@ use App\Models\Product;
 use App\Models\User;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 
 class ProductMessageController extends Controller
@@ -33,13 +35,7 @@ class ProductMessageController extends Controller
             'honeypot' => 'present|max:0', // bot prevention
         ]);
 
-        // Rate limiting: max 5 messages per IP per hour
-        $ip = $request->ip();
-        $recentCount = Message::where('created_at', '>=', now()->subHour())
-            ->whereRaw("EXISTS (SELECT 1 FROM messages AS m WHERE m.id = messages.id)")
-            ->count();
-
-        // More accurate: check by sender_email + IP combination
+        // Rate limiting: max 5 messages per sender per hour.
         $recentCount = Message::where('sender_email', $request->input('sender_email'))
             ->where('created_at', '>=', now()->subHour())
             ->count();
@@ -50,45 +46,60 @@ class ProductMessageController extends Controller
             ], 429);
         }
 
-        // Create the message
-        $message = Message::create([
-            'product_id' => $product->id,
-            'sender_name' => $request->input('sender_name'),
-            'sender_email' => $request->input('sender_email'),
-            'subject' => $request->input('subject'),
-            'body' => $request->input('body'),
-        ]);
-
-        // Send to all authors (or product owner if no authors)
-        $authors = $product->authors()->get();
-        $recipientUserIds = [];
-
-        if ($authors->isEmpty()) {
-            // Send to product owner
-            MessageRecipient::create([
-                'message_id' => $message->id,
-                'user_id' => $product->user_id,
+        [$message, $recipientUserIds] = DB::transaction(function () use ($request, $product) {
+            $message = Message::create([
+                'product_id' => $product->id,
+                'sender_name' => $request->input('sender_name'),
+                'sender_email' => $request->input('sender_email'),
+                'subject' => $request->input('subject'),
+                'body' => $request->input('body'),
             ]);
-            $recipientUserIds[] = $product->user_id;
-        } else {
-            // Send to all authors/co-authors
-            foreach ($authors as $author) {
+
+            // Send to every distinct author, or the product owner when the
+            // product has no author records.
+            $recipientUserIds = $product->authors()
+                ->pluck('user_id')
+                ->whenEmpty(fn ($ids) => $ids->push($product->user_id))
+                ->unique()
+                ->values();
+
+            foreach ($recipientUserIds as $recipientUserId) {
                 MessageRecipient::create([
                     'message_id' => $message->id,
-                    'user_id' => $author->user_id,
+                    'user_id' => $recipientUserId,
                 ]);
-                $recipientUserIds[] = $author->user_id;
             }
-        }
 
-        // Send email notification to each recipient
-        $recipients = User::whereIn('id', $recipientUserIds)->get();
+            return [$message, $recipientUserIds];
+        });
+
+        // The inbox message is already committed. Email is only a background
+        // notification and must never turn a successful send into HTTP 500.
+        $connection = (string) config('queue.notifications.connection', 'database');
+        $queue = (string) config('queue.notifications.queue', 'default');
+        $recipients = User::whereIn('id', $recipientUserIds)
+            ->whereNotNull('email')
+            ->get();
+
         foreach ($recipients as $recipient) {
-            Mail::to($recipient->email)->queue(new NewMessageNotification($message, $recipient));
+            try {
+                $notification = (new NewMessageNotification($message, $recipient))
+                    ->onConnection($connection)
+                    ->onQueue($queue);
+
+                Mail::to($recipient->email)->queue($notification);
+            } catch (\Throwable $exception) {
+                Log::warning('Message saved, but its email notification could not be queued.', [
+                    'message_id' => $message->id,
+                    'recipient_id' => $recipient->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
         }
 
         return response()->json([
             'message' => 'Your message has been sent successfully.',
+            'message_id' => $message->id,
         ]);
     }
 }

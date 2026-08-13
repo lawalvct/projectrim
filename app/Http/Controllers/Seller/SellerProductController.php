@@ -15,8 +15,10 @@ use App\Models\ProductFile;
 use App\Models\ProductImage;
 use App\Models\Setting;
 use App\Models\Tag;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
@@ -49,16 +51,17 @@ class SellerProductController extends Controller
     public function store(StoreProductRequest $request): RedirectResponse
     {
         $validated = $request->validated();
+        $productToNotify = null;
 
-        return DB::transaction(function () use ($validated, $request) {
+        $response = DB::transaction(function () use ($validated, $request, &$productToNotify) {
             $slug = Str::slug($validated['title']);
             $originalSlug = $slug;
             $counter = 1;
             while (Product::where('slug', $slug)->exists()) {
-                $slug = $originalSlug . '-' . $counter++;
+                $slug = $originalSlug.'-'.$counter++;
             }
 
-            $isPaid = !empty($validated['price']) && $validated['price'] > 0;
+            $isPaid = ! empty($validated['price']) && $validated['price'] > 0;
 
             $product = Product::create([
                 'user_id' => auth()->id(),
@@ -79,7 +82,7 @@ class SellerProductController extends Controller
                 'date_available' => $validated['date_available'] ?? null,
                 'price' => $validated['price'] ?? 0,
                 'is_paid' => $isPaid,
-                'status' =>'published',
+                'status' => 'published',
                 'published_at' => now(),
             ]);
 
@@ -116,7 +119,7 @@ class SellerProductController extends Controller
             }
 
             // Handle tags
-            if (!empty($validated['tags'])) {
+            if (! empty($validated['tags'])) {
                 $tagIds = [];
                 foreach ($validated['tags'] as $tagName) {
                     $tag = Tag::firstOrCreate(
@@ -131,14 +134,36 @@ class SellerProductController extends Controller
             // Handle co-authors
             $this->syncCoAuthors($product, $validated['co_authors'] ?? []);
 
-            // Dispatch notification job if requested
-            if (!empty($validated['notify_users'])) {
-                SendNewProductNotification::dispatch($product);
+            // Queue only after the transaction commits so workers never read a
+            // product that is not visible yet.
+            if (! empty($validated['notify_users'])) {
+                $productToNotify = $product;
             }
 
             return redirect()->route('seller.products.index')
-                ->with('status', 'Product created successfully.');
+                ->with('status', ! empty($validated['notify_users'])
+                    ? 'Product created successfully. User notifications have been queued.'
+                    : 'Product created successfully.');
         });
+
+        if ($productToNotify instanceof Product) {
+            try {
+                SendNewProductNotification::dispatch($productToNotify->id)
+                    ->onConnection((string) config('queue.notifications.connection', 'database'))
+                    ->onQueue((string) config('queue.notifications.queue', 'default'));
+            } catch (\Throwable $exception) {
+                // Product creation must stay successful even if queue storage is
+                // temporarily unavailable. Operators can retry from the logs.
+                Log::error('Unable to queue new product notifications.', [
+                    'product_id' => $productToNotify->id,
+                    'error' => $exception->getMessage(),
+                ]);
+
+                $response->with('warning', 'Product created, but notifications could not be queued.');
+            }
+        }
+
+        return $response;
     }
 
     public function edit(Product $product): Response|RedirectResponse
@@ -162,7 +187,7 @@ class SellerProductController extends Controller
         $validated = $request->validated();
 
         return DB::transaction(function () use ($validated, $request, $product) {
-            $isPaid = !empty($validated['price']) && $validated['price'] > 0;
+            $isPaid = ! empty($validated['price']) && $validated['price'] > 0;
 
             // Only regenerate slug if title changed
             $slug = $product->slug;
@@ -171,7 +196,7 @@ class SellerProductController extends Controller
                 $originalSlug = $slug;
                 $counter = 1;
                 while (Product::where('slug', $slug)->where('id', '!=', $product->id)->exists()) {
-                    $slug = $originalSlug . '-' . $counter++;
+                    $slug = $originalSlug.'-'.$counter++;
                 }
             }
 
@@ -197,7 +222,7 @@ class SellerProductController extends Controller
             ]);
 
             // Handle preview video removal
-            if (!empty($validated['remove_video']) && $product->preview_video) {
+            if (! empty($validated['remove_video']) && $product->preview_video) {
                 Storage::disk('public')->delete($product->preview_video);
                 $product->update(['preview_video' => null]);
             }
@@ -213,7 +238,7 @@ class SellerProductController extends Controller
             }
 
             // Remove specified images
-            if (!empty($validated['remove_images'])) {
+            if (! empty($validated['remove_images'])) {
                 $images = ProductImage::whereIn('id', $validated['remove_images'])
                     ->where('product_id', $product->id)
                     ->get();
@@ -326,7 +351,7 @@ class SellerProductController extends Controller
             ->with('status', 'Product published successfully.');
     }
 
-    public function downloads(Product $product): \Illuminate\Http\JsonResponse
+    public function downloads(Product $product): JsonResponse
     {
         if ($product->user_id !== auth()->id()) {
             abort(403);

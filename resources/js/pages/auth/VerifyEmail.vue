@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { Form, Head } from '@inertiajs/vue3';
+import { Form, Head, router } from '@inertiajs/vue3';
+import { onBeforeUnmount, onMounted } from 'vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Spinner } from '@/components/ui/spinner';
@@ -10,6 +11,18 @@ import { send } from '@/routes/verification';
 defineProps<{
     status?: string;
 }>();
+
+function refreshVerificationStatus() {
+    router.reload({ only: ['auth'] });
+}
+
+onMounted(() => {
+    window.addEventListener('focus', refreshVerificationStatus);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('focus', refreshVerificationStatus);
+});
 </script>
 
 <template>
@@ -35,6 +48,14 @@ defineProps<{
             <Button :disabled="processing" variant="secondary">
                 <Spinner v-if="processing" />
                 Resend verification email
+            </Button>
+
+            <Button
+                type="button"
+                variant="outline"
+                @click="refreshVerificationStatus"
+            >
+                I have verified my email
             </Button>
 
             <TextLink

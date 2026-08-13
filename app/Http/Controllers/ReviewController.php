@@ -9,6 +9,8 @@ use Illuminate\Http\Request;
 
 class ReviewController extends Controller
 {
+    private const MAX_REVIEWS_PER_HOUR = 5;
+
     public function store(Request $request, Product $product): JsonResponse
     {
         $request->validate([
@@ -18,12 +20,15 @@ class ReviewController extends Controller
 
         $user = $request->user();
 
-        $exists = Review::where('product_id', $product->id)
+        $recentReviewCount = Review::where('product_id', $product->id)
             ->where('user_id', $user->id)
-            ->exists();
+            ->where('created_at', '>=', now()->subHour())
+            ->count();
 
-        if ($exists) {
-            return response()->json(['message' => 'You have already reviewed this product.'], 422);
+        if ($recentReviewCount >= self::MAX_REVIEWS_PER_HOUR) {
+            return response()->json([
+                'message' => 'You can submit up to 5 reviews for this product per hour. Please try again later.',
+            ], 429);
         }
 
         $review = Review::create([

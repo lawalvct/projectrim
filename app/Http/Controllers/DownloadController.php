@@ -2,11 +2,14 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\ProductDownloadedNotification;
 use App\Models\Download;
 use App\Models\Product;
 use App\Models\Setting;
 use App\Services\RevenueService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 
 class DownloadController extends Controller
@@ -63,7 +66,7 @@ class DownloadController extends Controller
 
         // Record download entry for free products (paid already has one from purchase,
         // but we still create a daily record to enforce the once-per-day rule)
-        Download::create([
+        $download = Download::create([
             'user_id' => $user->id,
             'product_id' => $product->id,
             'ip_address' => $ip,
@@ -74,6 +77,25 @@ class DownloadController extends Controller
 
         // Record download revenue (with anti-fraud)
         $this->revenueService->recordDownloadRevenue($product, $user?->id, $ip);
+
+        // Notify the creator without delaying or breaking the download.
+        $creator = $product->user;
+        if ($creator && $creator->id !== $user->id && $creator->email) {
+            try {
+                $notification = (new ProductDownloadedNotification($product, $user, $download))
+                    ->onConnection((string) config('queue.notifications.connection', 'database'))
+                    ->onQueue((string) config('queue.notifications.queue', 'default'));
+
+                Mail::to($creator->email)->queue($notification);
+            } catch (\Throwable $exception) {
+                Log::warning('Product downloaded, but the creator email notification could not be queued.', [
+                    'download_id' => $download->id,
+                    'product_id' => $product->id,
+                    'creator_id' => $creator->id,
+                    'error' => $exception->getMessage(),
+                ]);
+            }
+        }
 
         // Check if smart links are enabled
         $smartLinkEnabled = Setting::getValue('smart_link_enabled', '0') === '1';

@@ -15,6 +15,11 @@ return [
 
     'default' => env('QUEUE_CONNECTION', 'database'),
 
+    'notifications' => [
+        'connection' => env('NOTIFICATION_QUEUE_CONNECTION', 'database'),
+        'queue' => env('NOTIFICATION_QUEUE', 'default'),
+    ],
+
     /*
     |--------------------------------------------------------------------------
     | Queue Connections

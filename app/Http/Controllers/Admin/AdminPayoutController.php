@@ -3,10 +3,13 @@
 namespace App\Http\Controllers\Admin;
 
 use App\Http\Controllers\Controller;
-use App\Support\AdminSidebarBadges;
+use App\Mail\PayoutApprovedNotification;
 use App\Models\PaymentGiven;
 use App\Models\PayoutRequest;
+use App\Support\AdminSidebarBadges;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 
 class AdminPayoutController extends Controller
 {
@@ -36,7 +39,32 @@ class AdminPayoutController extends Controller
 
     public function approve(PayoutRequest $payout)
     {
-        $payout->update(['status' => 'approved']);
+        $statusChanged = PayoutRequest::query()
+            ->whereKey($payout->id)
+            ->where('status', '!=', 'approved')
+            ->update(['status' => 'approved']) === 1;
+
+        $payout->refresh();
+
+        if ($statusChanged) {
+            $recipient = $payout->user;
+
+            if ($recipient?->email) {
+                try {
+                    $notification = (new PayoutApprovedNotification($payout))
+                        ->onConnection((string) config('queue.notifications.connection', 'database'))
+                        ->onQueue((string) config('queue.notifications.queue', 'default'));
+
+                    Mail::to($recipient->email)->queue($notification);
+                } catch (\Throwable $exception) {
+                    Log::warning('Payout approved, but its email notification could not be queued.', [
+                        'payout_request_id' => $payout->id,
+                        'recipient_id' => $recipient->id,
+                        'error' => $exception->getMessage(),
+                    ]);
+                }
+            }
+        }
 
         return back()->with('success', 'Payout request approved.');
     }
@@ -50,7 +78,7 @@ class AdminPayoutController extends Controller
             'payout_request_id' => $payout->id,
             'amount_usd' => $payout->amount_usd,
             'payment_method' => $payout->paymentMethod?->name ?? 'bank_transfer',
-            'reference' => 'ADMIN-' . now()->format('YmdHis'),
+            'reference' => 'ADMIN-'.now()->format('YmdHis'),
         ]);
 
         return back()->with('success', 'Payout marked as paid and payment recorded.');

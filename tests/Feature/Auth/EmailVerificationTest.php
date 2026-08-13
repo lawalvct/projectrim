@@ -98,3 +98,56 @@ test('already verified user visiting verification link is redirected without fir
     Event::assertNotDispatched(Verified::class);
     expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
 });
+
+test('signed email link verifies a user without an authenticated browser session', function () {
+    $user = User::factory()->unverified()->create();
+
+    Event::fake();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.complete',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $this->get($verificationUrl)
+        ->assertRedirect(route('login'))
+        ->assertSessionHas('status', 'Your email address has been verified. Please log in to continue.');
+
+    $this->assertGuest();
+    Event::assertDispatched(Verified::class);
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+});
+
+test('cross-session verification link rejects an invalid email hash', function () {
+    $user = User::factory()->unverified()->create();
+
+    Event::fake();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.complete',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1('wrong-email@example.com')],
+    );
+
+    $this->get($verificationUrl)->assertForbidden();
+
+    Event::assertNotDispatched(Verified::class);
+    expect($user->fresh()->hasVerifiedEmail())->toBeFalse();
+});
+
+test('authenticated user completing the new verification link reaches the dashboard', function () {
+    $user = User::factory()->unverified()->create();
+
+    $verificationUrl = URL::temporarySignedRoute(
+        'verification.complete',
+        now()->addMinutes(60),
+        ['id' => $user->id, 'hash' => sha1($user->email)],
+    );
+
+    $this->actingAs($user)
+        ->get($verificationUrl)
+        ->assertRedirect(route('dashboard').'?verified=1');
+
+    expect($user->fresh()->hasVerifiedEmail())->toBeTrue();
+});

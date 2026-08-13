@@ -32,3 +32,14 @@ test('does not send verification notification if email is verified', function ()
 
     Notification::assertNothingSent();
 });
+
+test('verification notification uses the cross-session signed route', function () {
+    $user = User::factory()->unverified()->create();
+    $notification = new VerifyEmail;
+
+    $mail = $notification->toMail($user);
+    $verificationUrl = $mail->actionUrl;
+
+    expect($verificationUrl)->toContain('/email/complete-verification/'.$user->id.'/');
+    expect(URL::hasValidSignature(Request::create($verificationUrl)))->toBeTrue();
+});

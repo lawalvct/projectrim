@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Admin\AdminUserController;
+use App\Http\Controllers\Auth\CompleteEmailVerificationController;
 use App\Http\Controllers\Auth\SocialAuthController;
 use App\Http\Controllers\BrowseController;
 use App\Http\Controllers\CartController;
@@ -31,6 +32,12 @@ use App\Http\Controllers\Seller\SellerTransactionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Signed verification links must also work when opened in another browser or
+// after the registration session has expired.
+Route::get('/email/complete-verification/{id}/{hash}', CompleteEmailVerificationController::class)
+    ->middleware(['signed', 'throttle:6,1'])
+    ->name('verification.complete');
 
 // Public product catalog & detail
 Route::get('/products', [ProductController::class, 'index'])->name('products.index');

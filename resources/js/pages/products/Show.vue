@@ -89,7 +89,6 @@ const props = defineProps<{
         user: { id: number; name: string };
     }>;
     isLiked: boolean;
-    userReview: { id: number; rating: number; comment: string } | null;
     hasReported: boolean;
 }>();
 
@@ -235,11 +234,11 @@ async function toggleLike() {
 // --- Reviews ---
 const reviews = ref<Review[]>([...props.product.reviews]);
 const reviewsCount = ref(props.product.reviews_count);
-const hasReviewed = ref(!!props.userReview);
 const reviewRating = ref(0);
 const reviewComment = ref('');
 const submittingReview = ref(false);
 const reviewError = ref('');
+const reviewSuccess = ref('');
 const hoverRating = ref(0);
 
 async function submitReview() {
@@ -253,6 +252,7 @@ async function submitReview() {
     }
     submittingReview.value = true;
     reviewError.value = '';
+    reviewSuccess.value = '';
     try {
         const { data } = await axios.post(`/products/${props.product.id}/reviews`, {
             rating: reviewRating.value,
@@ -260,7 +260,7 @@ async function submitReview() {
         });
         reviews.value.unshift(data.review);
         reviewsCount.value = data.reviews_count;
-        hasReviewed.value = true;
+        reviewSuccess.value = 'Your review was published successfully.';
         reviewRating.value = 0;
         reviewComment.value = '';
     } catch (err: any) {
@@ -280,15 +280,22 @@ const msgForm = ref({
 });
 const sendingMessage = ref(false);
 const messageSent = ref(false);
+const messageSuccess = ref('');
 const messageError = ref('');
 
 async function sendMessage() {
+    if (sendingMessage.value || messageSent.value) {
+        return;
+    }
+
     sendingMessage.value = true;
     messageError.value = '';
-    messageSent.value = false;
+    messageSuccess.value = '';
+
     try {
-        await axios.post(`/products/${props.product.id}/messages`, msgForm.value);
+        const { data } = await axios.post(`/products/${props.product.id}/messages`, msgForm.value);
         messageSent.value = true;
+        messageSuccess.value = data.message || 'Your message has been sent successfully.';
         msgForm.value.subject = '';
         msgForm.value.body = '';
     } catch (err: any) {
@@ -300,12 +307,20 @@ async function sendMessage() {
                     sessionStorage.setItem('authMessage', err.response.data.message);
                 }
             });
+
             return;
         }
+
         messageError.value = err.response?.data?.message || 'Failed to send message.';
     } finally {
         sendingMessage.value = false;
     }
+}
+
+function prepareAnotherMessage() {
+    messageSent.value = false;
+    messageSuccess.value = '';
+    messageError.value = '';
 }
 
 // --- Report ---
@@ -504,8 +519,10 @@ async function submitReport() {
                             <div v-else-if="activeTab === 'chapter1' && product.chapter_one" class="prose prose-sm max-w-none" v-html="product.chapter_one" />
                             <div v-else-if="activeTab === 'reviews'">
                                 <!-- Review Form -->
-                                <div v-if="auth?.user && !hasReviewed" class="mb-6 rounded-lg border p-4">
+                                <div v-if="auth?.user" class="mb-6 rounded-lg border p-4">
                                     <h4 class="mb-3 text-sm font-semibold">Write a Review</h4>
+                                    <p class="mb-3 text-xs text-muted-foreground">You may review this product more than once, up to 5 times per hour.</p>
+                                    <div v-if="reviewSuccess" role="status" class="mb-3 rounded-md border border-green-200 bg-green-50 px-3 py-2 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">{{ reviewSuccess }}</div>
                                     <div v-if="reviewError" class="mb-3 rounded-md bg-destructive/10 px-3 py-2 text-sm text-destructive">{{ reviewError }}</div>
                                     <div class="mb-3">
                                         <Label class="mb-1 block text-sm">Rating</Label>
@@ -564,11 +581,15 @@ async function submitReport() {
 
                             <!-- Messenger Tab -->
                             <div v-else-if="activeTab === 'messenger'">
-                                <div v-if="messageSent" class="mb-4 rounded-md bg-green-50 px-4 py-3 text-sm text-green-700">
-                                    Message sent successfully! The author(s) will receive it shortly.
+                                <div v-if="messageSent" role="status" class="mb-4 rounded-md border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-700 dark:border-green-900 dark:bg-green-950/40 dark:text-green-300">
+                                    <p class="font-medium">{{ messageSuccess }}</p>
+                                    <p class="mt-1 text-xs">The message is now available in the author’s inbox.</p>
+                                    <button type="button" class="mt-2 text-xs font-semibold underline underline-offset-2" @click="prepareAnotherMessage">
+                                        Send another message
+                                    </button>
                                 </div>
-                                <div v-if="messageError" class="mb-4 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ messageError }}</div>
-                                <form class="space-y-4" @submit.prevent="sendMessage">
+                                <div v-if="messageError" role="alert" class="mb-4 rounded-md bg-destructive/10 px-4 py-3 text-sm text-destructive">{{ messageError }}</div>
+                                <form class="space-y-4" :aria-busy="sendingMessage" @submit.prevent="sendMessage">
                                     <input type="text" name="honeypot" v-model="msgForm.honeypot" class="hidden" tabindex="-1" autocomplete="off" />
                                     <div class="grid gap-4 sm:grid-cols-2">
                                         <div>
@@ -588,8 +609,8 @@ async function submitReport() {
                                         <Label for="msg-body">Message</Label>
                                         <Textarea id="msg-body" v-model="msgForm.body" rows="5" required placeholder="Write your message to the author(s)..." />
                                     </div>
-                                    <Button type="submit" :disabled="sendingMessage">
-                                        {{ sendingMessage ? 'Sending...' : 'Send Message' }}
+                                    <Button type="submit" :disabled="sendingMessage || messageSent">
+                                        {{ sendingMessage ? 'Sending...' : messageSent ? 'Message Sent' : 'Send Message' }}
                                     </Button>
                                 </form>
                             </div>

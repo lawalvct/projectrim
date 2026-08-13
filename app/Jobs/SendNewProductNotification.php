@@ -16,17 +16,38 @@ class SendNewProductNotification implements ShouldQueue
 {
     use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
 
-    public function __construct(public Product $product) {}
+    public int $tries = 3;
+
+    public int $timeout = 120;
+
+    public function __construct(public int $productId) {}
+
+    public function backoff(): array
+    {
+        return [30, 120, 300];
+    }
 
     public function handle(): void
     {
-        $this->product->load(['user', 'faculty']);
+        $product = Product::with(['user', 'faculty'])->find($this->productId);
 
-        User::where('id', '!=', $this->product->user_id)
-            ->select('email')
-            ->chunkById(100, function ($users) {
+        if (! $product || $product->status !== 'published') {
+            return;
+        }
+
+        $connection = (string) config('queue.notifications.connection', 'database');
+        $queue = (string) config('queue.notifications.queue', 'default');
+
+        User::where('id', '!=', $product->user_id)
+            ->whereNotNull('email')
+            ->select(['id', 'email'])
+            ->chunkById(200, function ($users) use ($product, $connection, $queue) {
                 foreach ($users as $user) {
-                    Mail::to($user->email)->queue(new NewProductNotification($this->product));
+                    $message = (new NewProductNotification($product))
+                        ->onConnection($connection)
+                        ->onQueue($queue);
+
+                    Mail::to($user->email)->queue($message);
                 }
             });
     }
