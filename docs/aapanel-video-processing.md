@@ -4,9 +4,11 @@ Install a current FFmpeg build with `ffmpeg` and `ffprobe` available at fixed, a
 
 Set the PHP CLI `memory_limit` high enough for FFmpeg orchestration (the media processing itself runs out of process), then run a dedicated worker under Supervisor:
 
+> The normal ProjectRim worker processes the `default` queue used by email notifications. It does **not** process videos. Keep that daemon and add the separate daemon below.
+
 ```ini
 [program:projectrim-video]
-command=/www/server/php/83/bin/php /www/wwwroot/projectrim/artisan queue:work video_database --queue=videos --tries=2 --timeout=7200 --sleep=3
+command=/www/server/php/83/bin/php /www/wwwroot/projectrim/artisan queue:work video_database --queue=videos --tries=2 --timeout=7200 --sleep=3 --memory=512 --max-jobs=10
 directory=/www/wwwroot/projectrim
 autostart=true
 autorestart=true
@@ -16,6 +18,17 @@ numprocs=1
 redirect_stderr=true
 stdout_logfile=/www/wwwroot/projectrim/storage/logs/video-worker.log
 ```
+
+After saving the daemon, start it and confirm its status is Running. Existing products displaying `Video queued` will be picked up automatically; do not upload those videos again. Its log should show `App\\Jobs\\ProcessProductPreviewVideo`, not only notification mail classes.
+
+Run the built-in diagnosis from the application directory whenever processing remains queued:
+
+```bash
+/www/server/php/83/bin/php artisan optimize:clear
+/www/server/php/83/bin/php artisan videos:doctor
+```
+
+The diagnostic verifies FFmpeg/FFprobe, queue timing, pending product states, and jobs waiting specifically on the `videos` queue. After changing `.env` or Supervisor, restart both daemons so they load the new configuration.
 
 Also run Laravel's scheduler once per minute so `videos:prune` removes expired staged files and abandoned working directories:
 
