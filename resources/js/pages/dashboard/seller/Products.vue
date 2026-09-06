@@ -157,7 +157,14 @@ async function showDownloads(productId: number, title: string) {
                         <div class="flex-1 min-w-0">
                             <div class="flex items-start justify-between gap-2">
                                 <div>
-                                    <h3 class="font-semibold truncate">{{ product.title }}</h3>
+                                    <Link
+                                        v-if="product.status === 'published'"
+                                        :href="`/products/${product.slug}`"
+                                        class="block font-semibold truncate hover:text-primary hover:underline"
+                                    >
+                                        {{ product.title }}
+                                    </Link>
+                                    <h3 v-else class="font-semibold truncate">{{ product.title }}</h3>
                                     <p v-if="product.faculty" class="text-xs text-muted-foreground">{{ product.faculty.name }}</p>
                                 </div>
                                 <div class="flex flex-wrap justify-end gap-1">

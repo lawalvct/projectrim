@@ -137,7 +137,9 @@ function submitCheckout() {
                                         />
                                     </div>
                                     <div class="min-w-0 flex-1">
-                                        <p class="text-xs font-medium line-clamp-1">{{ item.product.title }}</p>
+                                        <Link :href="`/products/${item.product.slug}`" class="block text-xs font-medium line-clamp-1 hover:text-primary hover:underline">
+                                            {{ item.product.title }}
+                                        </Link>
                                     </div>
                                     <span class="text-xs font-semibold">{{ currencySymbol }}{{ fmt(item.price) }}</span>
                                 </div>

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { Head, Link, usePage, router } from '@inertiajs/vue3';
 import axios from 'axios';
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
@@ -120,6 +120,22 @@ const videoOpen = ref(false);
 // `preview_video` always points to the last fully published file. During a
 // replacement, the queued source remains private and this existing file stays playable.
 const readyPreviewVideo = computed(() => props.product.preview_video);
+const previewVideoEl = ref<HTMLVideoElement | null>(null);
+
+// Browsers only allow unprompted playback when the video is muted, so start
+// muted and let the viewer unmute via the controls.
+onMounted(() => {
+    const el = previewVideoEl.value;
+
+    if (!el) {
+        return;
+    }
+
+    el.muted = true;
+    el.play().catch(() => {
+        // Autoplay blocked (e.g. data saver): the poster and controls remain.
+    });
+});
 
 function formatSize(bytes: number): string {
     if (bytes < 1024) {
@@ -476,6 +492,7 @@ async function submitReport() {
                         >
                             <video
                                 v-if="readyPreviewVideo"
+                                ref="previewVideoEl"
                                 :src="`/storage/${readyPreviewVideo}`"
                                 :poster="
                                     product.images.length
@@ -484,7 +501,9 @@ async function submitReport() {
                                 "
                                 class="h-full w-full object-cover"
                                 playsinline
-                                preload="metadata"
+                                autoplay
+                                muted
+                                preload="auto"
                                 controls
                             />
                             <img
