@@ -824,3 +824,70 @@ test('retrying replaces a wrong-sized orphan chunk and restores resumable progre
     expect($upload->status)->toBe('completed')
         ->and(Storage::disk('local')->get($upload->source_path))->toBe('ABCD');
 });
+
+test('the edit form may submit remove_video as a falsy value alongside a new upload token', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+    Queue::fake();
+    $seller = User::factory()->create(['role' => 'seller']);
+    $existingToken = (string) Str::uuid();
+    $existingSource = 'product-video-uploads/'.$existingToken.'/source.mp4';
+    Storage::disk('local')->put($existingSource, 'current source');
+    Storage::disk('public')->put('products/preview-videos/current.mp4', 'current preview');
+    $product = videoProduct($seller, [
+        'preview_video' => 'products/preview-videos/current.mp4',
+        'preview_video_source_path' => $existingSource,
+        'preview_video_processing_token' => $existingToken,
+        'preview_video_status' => 'ready',
+    ]);
+    $replacement = completedProductVideoUpload($seller, 'product-video-uploads/replacement/source.mp4');
+
+    // FormData serializes the form's `false` as the string "0", which is what the
+    // browser actually sends on every save.
+    $this->actingAs($seller)->put(route('seller.products.update', $product), [
+        'title' => $product->title,
+        'project_file' => UploadedFile::fake()->create('project.pdf', 20, 'application/pdf'),
+        'preview_video_upload_token' => $replacement->token,
+        'remove_video' => '0',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('seller.products.index'));
+
+    $product->refresh();
+    expect($product->preview_video_processing_token)->toBe($replacement->token)
+        ->and($product->preview_video_status)->toBe('queued');
+});
+
+test('a product with no preview video accepts a first upload token alongside a falsy remove_video', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+    Queue::fake();
+    $seller = User::factory()->create(['role' => 'seller']);
+    $product = videoProduct($seller);
+    $upload = completedProductVideoUpload($seller, 'product-video-uploads/first/source.mp4');
+
+    $this->actingAs($seller)->put(route('seller.products.update', $product), [
+        'title' => $product->title,
+        'project_file' => UploadedFile::fake()->create('project.pdf', 20, 'application/pdf'),
+        'preview_video_upload_token' => $upload->token,
+        'remove_video' => '0',
+    ])->assertSessionHasNoErrors()->assertRedirect(route('seller.products.index'));
+
+    $product->refresh();
+    expect($product->preview_video_processing_token)->toBe($upload->token)
+        ->and($product->preview_video_status)->toBe('queued');
+});
+
+test('removing the current preview video and uploading a new one in one save is still rejected', function () {
+    Storage::fake('local');
+    Storage::fake('public');
+    Queue::fake();
+    $seller = User::factory()->create(['role' => 'seller']);
+    $product = videoProduct($seller, ['preview_video' => 'products/preview-videos/current.mp4']);
+    $upload = completedProductVideoUpload($seller, 'product-video-uploads/conflict/source.mp4');
+
+    $this->actingAs($seller)->put(route('seller.products.update', $product), [
+        'title' => $product->title,
+        'project_file' => UploadedFile::fake()->create('project.pdf', 20, 'application/pdf'),
+        'preview_video_upload_token' => $upload->token,
+        'remove_video' => '1',
+    ])->assertSessionHasErrors(['preview_video_upload_token', 'remove_video']);
+});

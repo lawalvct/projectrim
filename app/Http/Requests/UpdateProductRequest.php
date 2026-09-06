@@ -16,6 +16,29 @@ class UpdateProductRequest extends FormRequest
         return $product && $product->user_id === $this->user()->id;
     }
 
+    /**
+     * The edit form always submits both video fields, and `prohibits` counts any
+     * non-empty value as present — including the "0" that FormData sends for a
+     * false boolean. Null out the inactive field so only a genuine conflict
+     * (a new upload *and* a removal in the same request) is rejected.
+     */
+    protected function prepareForValidation(): void
+    {
+        $normalized = [];
+
+        if (! $this->boolean('remove_video')) {
+            $normalized['remove_video'] = null;
+        }
+
+        if (blank($this->input('preview_video_upload_token'))) {
+            $normalized['preview_video_upload_token'] = null;
+        }
+
+        if ($normalized !== []) {
+            $this->merge($normalized);
+        }
+    }
+
     public function rules(): array
     {
         $product = $this->route('product');
@@ -60,6 +83,9 @@ class UpdateProductRequest extends FormRequest
             'project_file.required' => 'The project file field is required.',
             'project_file.max' => 'The project file must not be greater than 50 MB.',
             'preview_video.max' => 'The preview video must not be greater than 50 MB.',
+            'preview_video.prohibits' => 'You cannot upload a new preview video and remove the current one in the same save.',
+            'preview_video_upload_token.prohibits' => 'You cannot upload a new preview video and remove the current one in the same save.',
+            'remove_video.prohibits' => 'You cannot remove the current preview video and upload a new one in the same save.',
         ];
     }
 }

@@ -379,6 +379,7 @@ return;
                                     {{ existingFile ? 'Upload a new file only if you want to replace the current one.' : 'Upload the main project file to continue.' }}
                                 </p>
                                 <p v-if="form.errors.project_file" class="mt-1 text-xs text-destructive">{{ form.errors.project_file }}</p>
+
                             </div>
                             <div>
                                 <Label>Preview Video</Label>
@@ -403,10 +404,12 @@ return;
                                     class="w-full rounded-md border bg-background px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-primary/10 file:px-3 file:py-1 file:text-xs file:font-medium file:text-primary"
                                     @change="selectPreviewVideo"
                                 />
+                                <p class="mt-1 text-xs text-muted-foreground">Upload a video summarizing the process and findings of your research.</p>
                                 <div v-if="selectedVideoFile" class="mt-3 rounded-lg border bg-muted/30 p-3 text-xs">
                                     <div class="flex items-center justify-between gap-3">
                                         <span class="truncate font-medium">{{ selectedVideoFile.name }}</span>
                                         <span>{{ videoProgress }}%</span>
+
                                     </div>
                                     <div class="mt-2 h-2 overflow-hidden rounded-full bg-muted">
                                         <div class="h-full bg-primary transition-all" :style="{ width: `${videoProgress}%` }" />
@@ -415,10 +418,12 @@ return;
                                     <p v-else-if="videoError" class="mt-2 text-destructive">{{ videoError }}</p>
                                     <p v-else class="mt-2 text-muted-foreground">Uploading chunk {{ videoCurrentChunk }} of {{ videoTotalChunks || '...' }}</p>
                                     <p v-if="isEditing && product?.preview_video" class="mt-2 text-muted-foreground">Your current video stays available until the replacement is ready.</p>
+
                                     <div class="mt-3 flex gap-2">
                                         <Button v-if="videoError" type="button" size="sm" variant="outline" @click="retryPreviewVideo">Retry</Button>
                                         <Button type="button" size="sm" variant="ghost" @click="cancelPreviewVideo">Cancel and reselect</Button>
                                     </div>
+
                                 </div>
                                 <p v-if="form.errors.preview_video_upload_token" class="mt-1 text-xs text-destructive">{{ form.errors.preview_video_upload_token }}</p>
                             </div>
